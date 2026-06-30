@@ -13,22 +13,13 @@ import { BRIDGE_PACKAGE_NAME, resolveBridgePackagePath, resolveProjectRoot } fro
 import { IllegalToolError, type LifecycleState, assertToolLegal } from "../fsm/machine.js";
 import { createProject } from "../lifecycle/create-project.js";
 import { ensureEditor } from "../lifecycle/ensure-editor.js";
-import {
-  bridgeWsCandidates,
-  bridgeWsUrl,
-  startEditorProcess,
-  tryConnectAny,
-} from "../lifecycle/launch-node.js";
-import { type LaunchSession, launch, shutdown } from "../lifecycle/launch.js";
+import { bridgeWsUrl, connectBridge, startEditorProcess } from "../lifecycle/launch-node.js";
+import { launch, shutdown } from "../lifecycle/launch.js";
 import { NodeFilesystem, NodeProcessRunner } from "../lifecycle/node-deps.js";
 import { createResolver } from "../resolver/index.js";
 import type { StateStore } from "../state/store.js";
+import type { ToolContext } from "./context.js";
 import { getStatus } from "./status.js";
-
-/** Holds the live editor process across launch → shutdown within one session. */
-interface SessionHolder {
-  current: LaunchSession | null;
-}
 
 type ToolResult = { isError?: boolean; content: { type: "text"; text: string }[] };
 
@@ -81,8 +72,8 @@ async function runBody(
   }
 }
 
-export function registerLifecycleTools(server: McpServer, store: StateStore): void {
-  const session: SessionHolder = { current: null };
+export function registerLifecycleTools(server: McpServer, ctx: ToolContext): void {
+  const { store, session } = ctx;
 
   server.tool(
     "ensure_editor",
@@ -127,13 +118,8 @@ export function registerLifecycleTools(server: McpServer, store: StateStore): vo
       const blocked = await guard(store, "launch");
       if (blocked) return blocked;
       return runBody(store, "launch", async () => {
-        const candidates = bridgeWsCandidates();
         const result = await launch(
-          {
-            startEditor: startEditorProcess,
-            tryConnect: (_url, timeoutMs) => tryConnectAny(candidates, timeoutMs),
-            wsUrl: bridgeWsUrl(),
-          },
+          { startEditor: startEditorProcess, connectBridge, wsUrl: bridgeWsUrl() },
           store,
           args,
           resolveProjectRoot(),

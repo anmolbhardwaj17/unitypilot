@@ -73,7 +73,63 @@ namespace McpUnity.Unity
             }
 
             string data = e.Data;
-            EditorApplication.delayCall += () => HandleMessageAsync(data);
+            // FORK (Phase 5a): OnMessage runs on a WS background thread, so we must NOT call
+            // main-thread-only APIs (e.g. Application.isBatchMode) here. When the headless pump
+            // is active, route to it (synchronous execution on the pump's main thread);
+            // otherwise keep the original delayCall + coroutine dispatch for the interactive editor.
+            if (McpUnity.Unity.McpUnityServer.HeadlessPumpActive)
+            {
+                McpUnity.Unity.McpUnityServer.EnqueueHeadless(() => HandleMessageSync(data));
+            }
+            else
+            {
+                EditorApplication.delayCall += () => HandleMessageAsync(data);
+            }
+        }
+
+        /// <summary>
+        /// FORK (Phase 5a): synchronous message handling for the headless pump. Runs on the
+        /// main thread (the pump) and cannot use EditorCoroutines (the editor loop is idle in
+        /// batch mode), so it executes sync tools/resources directly. Async tools are not
+        /// supported on this path yet (Phase 5b/6).
+        /// </summary>
+        private void HandleMessageSync(string data)
+        {
+            string requestId = null;
+            try
+            {
+                JObject requestJson = JObject.Parse(data);
+                string method = requestJson["method"]?.ToString();
+                JObject parameters = requestJson["params"] as JObject ?? new JObject();
+                requestId = requestJson["id"]?.ToString();
+
+                JObject responseJson;
+                if (string.IsNullOrEmpty(method))
+                {
+                    responseJson = CreateErrorResponse("Missing method in request", "invalid_request");
+                }
+                else if (_server.TryGetTool(method, out var tool))
+                {
+                    responseJson = tool.IsAsync
+                        ? CreateErrorResponse($"Tool '{method}' is async and not supported in headless batch mode yet", "unsupported_headless")
+                        : tool.Execute(parameters);
+                }
+                else if (_server.TryGetResource(method, out var resource))
+                {
+                    responseJson = resource.Fetch(parameters);
+                }
+                else
+                {
+                    responseJson = CreateErrorResponse($"Unknown method: {method}", "unknown_method");
+                }
+
+                Send(CreateResponse(requestId, responseJson).ToString(Formatting.None));
+            }
+            catch (Exception ex)
+            {
+                McpLogger.LogError($"Error processing message (sync): {ex.Message}");
+                Send(CreateResponse(requestId, CreateErrorResponse($"Internal server error: {ex.Message}", "internal_error")).ToString(Formatting.None));
+            }
         }
 
         /// <summary>

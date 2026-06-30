@@ -4,8 +4,9 @@
  */
 
 import { spawn } from "node:child_process";
+import { type BridgeClient, NodeBridgeClient } from "../bridge/client.js";
 import { BRIDGE_WS_PATH, BRIDGE_WS_PORT } from "../config.js";
-import type { EditorHandle } from "./launch.js";
+import { type EditorHandle, HANDSHAKE_CONNECT_TIMEOUT_MS } from "./launch.js";
 
 const MAX_LOG = 200_000;
 
@@ -21,6 +22,10 @@ export function startEditorProcess(
   const args = ["-projectPath", projectPath, "-batchmode"];
   if (!graphics) args.push("-nographics");
   args.push("-logFile", "-");
+  // Drive the forked bridge's headless message pump (the editor loop is idle in batch
+  // mode, so delayCall/coroutine dispatch don't fire). RunHeadless blocks the main
+  // thread draining WS work and executing tools synchronously — see FORK.md.
+  args.push("-executeMethod", "McpUnity.Unity.McpUnityServer.RunHeadless");
 
   // UNITY_MCP_HEADLESS opts the (forked) bridge into running its WS server in batch
   // mode — upstream disables it there for CI safety. See packages/bridge/FORK.md.
@@ -56,46 +61,8 @@ export function startEditorProcess(
   };
 }
 
-/** One WS upgrade attempt to the bridge; resolves true on `open`, false otherwise. */
-export function tryConnectWs(url: string, timeoutMs: number): Promise<boolean> {
-  return new Promise((resolve) => {
-    let settled = false;
-    const done = (v: boolean, ws?: WebSocket) => {
-      if (settled) return;
-      settled = true;
-      try {
-        ws?.close();
-      } catch {
-        // ignore
-      }
-      resolve(v);
-    };
-
-    let ws: WebSocket;
-    try {
-      ws = new WebSocket(url);
-    } catch {
-      resolve(false);
-      return;
-    }
-    const timer = setTimeout(() => done(false, ws), timeoutMs);
-    ws.addEventListener("open", () => {
-      clearTimeout(timer);
-      done(true, ws);
-    });
-    ws.addEventListener("error", () => {
-      clearTimeout(timer);
-      done(false, ws);
-    });
-    ws.addEventListener("close", () => {
-      clearTimeout(timer);
-      done(false);
-    });
-  });
-}
-
 /**
- * Candidate URLs to probe. The bridge binds to "localhost", which resolves to
+ * Candidate URLs to try. The bridge binds to "localhost", which resolves to
  * 127.0.0.1 or ::1 depending on the system — websocket-sharp listens on only one,
  * so we try both plus the hostname rather than guessing the address family.
  */
@@ -107,12 +74,13 @@ export function bridgeWsCandidates(): string[] {
   ];
 }
 
-/** True if any candidate URL accepts a WS upgrade within the timeout. */
-export async function tryConnectAny(urls: string[], timeoutMs: number): Promise<boolean> {
-  for (const url of urls) {
-    if (await tryConnectWs(url, timeoutMs)) return true;
+/** One round of connection attempts across the candidate hosts; live client or null. */
+export async function connectBridge(): Promise<BridgeClient | null> {
+  for (const url of bridgeWsCandidates()) {
+    const client = await NodeBridgeClient.connect(url, HANDSHAKE_CONNECT_TIMEOUT_MS);
+    if (client) return client;
   }
-  return false;
+  return null;
 }
 
 export function bridgeWsUrl(): string {

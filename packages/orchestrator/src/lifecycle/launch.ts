@@ -8,6 +8,7 @@
  */
 
 import { resolve as resolvePath } from "node:path";
+import type { BridgeClient } from "../bridge/client.js";
 import { type StateStore, mergeFrozen } from "../state/store.js";
 import { ProjectPathMismatchError } from "./create-project.js";
 import { LICENSE_MESSAGE, isLicenseFailure, logTail } from "./diagnostics.js";
@@ -25,8 +26,8 @@ export interface EditorHandle {
 
 export interface LaunchDeps {
   startEditor(editorPath: string, projectPath: string, graphics: boolean): EditorHandle;
-  /** One connection attempt to the bridge WS; resolves true on a successful upgrade. */
-  tryConnect(url: string, timeoutMs: number): Promise<boolean>;
+  /** One attempt to open a persistent bridge connection; resolves to a live client or null. */
+  connectBridge(): Promise<BridgeClient | null>;
   wsUrl: string;
   handshakeTimeoutMs?: number;
   pollIntervalMs?: number;
@@ -37,6 +38,7 @@ export interface LaunchDeps {
 
 export interface LaunchSession {
   handle: EditorHandle;
+  client: BridgeClient;
   projectPath: string;
   wsUrl: string;
 }
@@ -83,11 +85,12 @@ export async function launch(
       if (!handle.isAlive()) {
         throw new Error(diagnoseEarlyExit(handle.capturedLog()));
       }
-      if (await deps.tryConnect(deps.wsUrl, HANDSHAKE_CONNECT_TIMEOUT_MS)) {
+      const client = await deps.connectBridge();
+      if (client) {
         await store.write(
           mergeFrozen(current, { state: "launched", lastHandshakeAt: nowIso() }, []),
         );
-        return { handle, projectPath: projectRoot, wsUrl: deps.wsUrl };
+        return { handle, client, projectPath: projectRoot, wsUrl: deps.wsUrl };
       }
       await sleep(pollInterval);
     }
@@ -105,7 +108,10 @@ export async function shutdown(
   store: StateStore,
 ): Promise<{ killed: boolean }> {
   const killed = session !== null;
-  if (session) session.handle.kill();
+  if (session) {
+    session.client.close();
+    session.handle.kill();
+  }
 
   const current = await store.read();
   if (current) {

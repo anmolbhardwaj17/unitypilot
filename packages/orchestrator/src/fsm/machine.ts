@@ -90,6 +90,17 @@ export function assertToolLegal(state: LifecycleState, tool: string): void {
 }
 
 /**
+ * Bridge tools (`scene_*`, `component_*`, …) are legal only while `launched`
+ * (SPEC §3/§4b). Off-state, the error points the agent at the next lifecycle tool
+ * (e.g. from `project_created`, "call launch first").
+ */
+export function assertBridgeToolLegal(state: LifecycleState, tool: string): void {
+  if (state !== "launched") {
+    throw new IllegalToolError(state, tool, nextLifecycleTool(state));
+  }
+}
+
+/**
  * Apply a tool's transition. Throws {@link IllegalToolError} if the tool is not a
  * legal transition from `state`. (Used by the lifecycle tool bodies in Phase 3+.)
  */

@@ -2,6 +2,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import type { BridgeClient } from "../bridge/client.js";
 import { initialState } from "../state/schema.js";
 import { StateStore, mergeFrozen } from "../state/store.js";
 import { ProjectPathMismatchError } from "./create-project.js";
@@ -9,6 +10,21 @@ import type { EditorHandle, LaunchDeps } from "./launch.js";
 import { launch, shutdown } from "./launch.js";
 
 const WS_URL = "ws://127.0.0.1:8090/McpUnity";
+
+/** A no-op bridge client for tests. */
+function fakeClient(): BridgeClient & { closed: boolean } {
+  const c = {
+    closed: false,
+    async request() {
+      return {};
+    },
+    isOpen: () => !c.closed,
+    close() {
+      c.closed = true;
+    },
+  };
+  return c;
+}
 
 /** A fake editor process; configurable liveness and captured log. */
 function fakeHandle(opts?: { aliveFor?: number; log?: string }): EditorHandle & { kills: number } {
@@ -49,7 +65,7 @@ async function projectCreatedStore(root: string): Promise<StateStore> {
 }
 
 function deps(
-  over: Partial<LaunchDeps> & Pick<LaunchDeps, "startEditor" | "tryConnect">,
+  over: Partial<LaunchDeps> & Pick<LaunchDeps, "startEditor" | "connectBridge">,
 ): LaunchDeps {
   return {
     wsUrl: WS_URL,
@@ -79,9 +95,9 @@ describe("launch", () => {
     const session = await launch(
       deps({
         startEditor: () => handle,
-        tryConnect: async () => {
+        connectBridge: async () => {
           attempts += 1;
-          return attempts >= 3; // server comes up on the 3rd poll
+          return attempts >= 3 ? fakeClient() : null; // server comes up on the 3rd poll
         },
       }),
       store,
@@ -100,7 +116,7 @@ describe("launch", () => {
     const handle = fakeHandle({ aliveFor: 0, log: "No valid Unity Editor license found." });
     await expect(
       launch(
-        deps({ startEditor: () => handle, tryConnect: async () => false }),
+        deps({ startEditor: () => handle, connectBridge: async () => null }),
         store,
         { projectPath: root },
         root,
@@ -116,7 +132,7 @@ describe("launch", () => {
       launch(
         deps({
           startEditor: () => handle,
-          tryConnect: async () => false,
+          connectBridge: async () => null,
           handshakeTimeoutMs: 3_000,
         }),
         store,
@@ -132,7 +148,7 @@ describe("launch", () => {
     const store = await projectCreatedStore(root);
     await expect(
       launch(
-        deps({ startEditor: () => fakeHandle(), tryConnect: async () => true }),
+        deps({ startEditor: () => fakeHandle(), connectBridge: async () => fakeClient() }),
         store,
         { projectPath: "/elsewhere" },
         root,
@@ -157,9 +173,11 @@ describe("shutdown", () => {
       mergeFrozen((await store.read()) ?? initialState(), { state: "launched" }, []),
     );
     const handle = fakeHandle();
-    const result = await shutdown({ handle, projectPath: root, wsUrl: WS_URL }, store);
+    const client = fakeClient();
+    const result = await shutdown({ handle, client, projectPath: root, wsUrl: WS_URL }, store);
     expect(result.killed).toBe(true);
     expect(handle.kills).toBe(1);
+    expect(client.closed).toBe(true);
     expect((await store.read())?.state).toBe("project_created");
   });
 

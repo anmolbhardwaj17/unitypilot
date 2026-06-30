@@ -42,4 +42,32 @@ we gate the batch-mode guards behind an explicit opt-in:
   unreliable in batch mode.
 
 Not yet changed: the quit/assembly-reload event handlers still no-op in batch mode.
-Reload-resilience headless (server restart after a recompile) is a Phase 5+ concern.
+Reload-resilience headless (server restart after a recompile) is a Phase 5b concern.
+
+### Headless message pump (Phase 5a) — `McpUnityServer.cs` + `McpUnitySocketHandler.cs`
+
+Upstream dispatches WS messages to the main thread via `EditorApplication.delayCall` and
+runs tools as `EditorCoroutine`s — both driven by the editor update loop, which **does not
+run in `-batchmode`**. Symptom: the first command processed, every later one hung.
+
+- `RunHeadless()` (invoked by the orchestrator via `-executeMethod`) blocks the main thread
+  in a loop draining a `ConcurrentQueue` of actions and executing them synchronously. No
+  dependency on the dead editor loop.
+- `OnMessage` (a WS background thread) branches on the thread-safe `HeadlessPumpActive` flag
+  (NOT `Application.isBatchMode`, which is main-thread-only and threw there) and enqueues a
+  new synchronous `HandleMessageSync` (sync tools/resources only; async tools — `run_tests`,
+  `recompile_scripts` — are Phase 5b/6). Interactive mode keeps the original dispatch.
+
+Client-side counterpart (orchestrator, not bridge): the `BridgeClient` uses the `ws` package,
+not Node's built-in WebSocket — the built-in (undici) mis-reads websocket-sharp's frames after
+the first message (empty payloads).
+
+### Added tools (Phase 5a) — `Editor/Tools/`
+
+- **`CreatePrimitiveTool.cs`** (`create_primitive`) — upstream has no primitive tool, and
+  `execute_menu_item("GameObject/3D Object/Cube")` blocks the main thread in batch mode
+  (it wedged the bridge's coroutine pump in testing). Uses `GameObject.CreatePrimitive`.
+- **`RefreshAssetsTool.cs`** (`refresh_assets`) — `AssetDatabase.Refresh()`; the Unity-side
+  half of the hybrid `import_assets` (the orchestrator copies files in, this imports them).
+
+Both registered in `McpUnityServer.RegisterTools`.

@@ -274,8 +274,9 @@ namespace McpUnity.Unity
             {
                 if (Application.isBatchMode)
                 {
-                    // FORK: EditorApplication.delayCall/update timing is unreliable in batch
-                    // mode, so start the server directly rather than via the scheduler.
+                    // FORK: start directly (scheduler timing is unreliable in batch mode). The
+                    // editor's update/delayCall loop is idle headless, so message processing is
+                    // driven by the blocking RunHeadless pump (invoked via -executeMethod).
                     StartServer();
                 }
                 else
@@ -283,6 +284,56 @@ namespace McpUnity.Unity
                     ScheduleStartServer(requireAutoStart: true, reason: "auto-start");
                 }
             }
+        }
+
+        // FORK (Phase 5a): headless message pump. The editor's update/delayCall loop does NOT
+        // run in batch mode, so the socket handler enqueues work here and RunHeadless — a
+        // blocking loop on the main thread, started via -executeMethod — drains it and runs
+        // tools synchronously. No dependency on the dead editor loop.
+        private static readonly ConcurrentQueue<Action> _headlessActions = new ConcurrentQueue<Action>();
+        private static volatile bool _headlessPumpRunning;
+
+        /// <summary>
+        /// True while the headless pump is running. Thread-safe (volatile bool) so the WS
+        /// background thread can branch on it without touching main-thread-only APIs like
+        /// Application.isBatchMode.
+        /// </summary>
+        public static bool HeadlessPumpActive => _headlessPumpRunning;
+
+        public static void EnqueueHeadless(Action action)
+        {
+            _headlessActions.Enqueue(action);
+        }
+
+        /// <summary>
+        /// FORK: headless entry point (invoked via `-executeMethod`). Blocks the main thread,
+        /// draining and executing queued WebSocket work until the editor quits.
+        /// </summary>
+        public static void RunHeadless()
+        {
+            if (!Application.isBatchMode)
+            {
+                return;
+            }
+            var _ = Instance; // ensure the server is constructed and started
+            _headlessPumpRunning = true;
+            EditorApplication.quitting += StopHeadlessPump;
+            McpLogger.LogInfo("Headless MCP pump started.");
+            while (_headlessPumpRunning)
+            {
+                while (_headlessActions.TryDequeue(out var action))
+                {
+                    try { action(); }
+                    catch (Exception e) { McpLogger.LogError($"Headless action error: {e.Message}"); }
+                }
+                Thread.Sleep(10);
+            }
+            McpLogger.LogInfo("Headless MCP pump stopped.");
+        }
+
+        private static void StopHeadlessPump()
+        {
+            _headlessPumpRunning = false;
         }
 
         private StartServerResult StartServerInternal(bool logAddressInUseAsError)
@@ -548,6 +599,14 @@ namespace McpUnity.Unity
             // Register CreateSceneTool
             CreateSceneTool createSceneTool = new CreateSceneTool();
             _tools.Add(createSceneTool.Name, createSceneTool);
+
+            // FORK (Phase 5a): primitive creation (menu-item path wedges in batch mode)
+            CreatePrimitiveTool createPrimitiveTool = new CreatePrimitiveTool();
+            _tools.Add(createPrimitiveTool.Name, createPrimitiveTool);
+
+            // FORK (Phase 5a): AssetDatabase refresh for the hybrid import_assets
+            RefreshAssetsTool refreshAssetsTool = new RefreshAssetsTool();
+            _tools.Add(refreshAssetsTool.Name, refreshAssetsTool);
 
             // Register DeleteSceneTool
             DeleteSceneTool deleteSceneTool = new DeleteSceneTool();

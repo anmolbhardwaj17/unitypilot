@@ -153,13 +153,30 @@ Split by which process executes them.
 
 Most of these come from the fork; we proxy them through the orchestrator so Claude Code sees one unified tool list.
 
-**`import_assets`** *(the one the user specifically wants)*
+> **Reality check (Phase 5 spike).** The chosen fork (CoderGamester/mcp-unity) provides
+> a rich set — `create_scene`/`load_scene`/`save_scene`/`unload_scene`/`delete_scene`,
+> `update_gameobject`/`get_gameobject`/`select_gameobject`/`duplicate`/`delete`/`reparent`/
+> `move`/`rotate`/`scale_gameobject`/`set_transform`, `update_component`, the `*_material`
+> tools, `add_asset_to_scene`, `create_prefab`, `add_package`, `execute_menu_item`,
+> `recompile_scripts`, `run_tests`, `send_console_log`, `batch_execute`, and resources
+> (`get_console_logs`, `get_scenes_hierarchy`, `get_tests`, …). **But it has no
+> `script_write`/`script_edit` and no `import_assets`.** We implement those two ourselves,
+> **hybrid**: the orchestrator does the file IO (it has direct local fs access to the
+> project) and the bridge does the Unity-side refresh/compile via a small forked
+> `refresh_assets` tool. There is no primitive-creation tool either: "add a cube" is
+> `execute_menu_item("GameObject/3D Object/Cube")`.
+>
+> **Concurrency (`busy`, G5).** `busy` is not persisted; it is an in-memory serialization
+> overlay on `launched`. Bridge calls run through a per-session mutex so two never race,
+> and `status` reports whether a call is in flight. The persisted `state` stays `launched`.
+
+**`import_assets`** *(the one the user specifically wants — forked-in, hybrid)*
 - Input: `{ sources: string[], destination: string }`
-- Behavior: copy files into the project, call `AssetDatabase.ImportAsset` + refresh, report import errors. (User supplies the assets; we import and make them usable. No generation — out of scope, see §8.)
+- Behavior: orchestrator copies the source files into `<project>/Assets/<destination>`, then calls the bridge's `refresh_assets` so Unity imports them (`AssetDatabase.Refresh`), reporting errors. (User supplies the assets; we import and make them usable. No generation — out of scope, see §8.) Importing assets that compile (scripts) triggers a domain reload — see Phase 5b.
 
-**`scene_*`** — `scene_create`, `scene_load`, `scene_save`, `gameobject_create`, `transform_set`, `component_add`, `component_configure`. (Commodity; comes with the fork.)
+**`scene_*`** — proxied to the fork: `scene_create`→`create_scene`, `scene_load`→`load_scene`, `scene_save`→`save_scene`, `gameobject_create`→`update_gameobject` (or a cube via `execute_menu_item`), `transform_set`→`set_transform`, `component_add`/`component_configure`→`update_component`.
 
-**`script_*`** — `script_write`, `script_edit`, `recompile`, surfacing compile errors.
+**`script_*`** *(forked-in, hybrid — Phase 5b)* — `script_write` writes a `.cs` into `Assets/` (orchestrator fs) then `recompile_scripts`; attaching it uses `update_component`. Compiling forces a Unity **domain reload** that drops and restarts the bridge WS, so the orchestrator's `BridgeClient` must reconnect across it. This is why scripts are split into Phase 5b.
 
 **`run_tests`** — invoke the Unity Test Runner, return pass/fail + failures.
 
@@ -268,8 +285,17 @@ Each phase ends with a concrete, testable deliverable. **Do not start a phase un
 - **Deliverable:** orchestrator launches Unity headless and reaches a confirmed `launched` handshake on a Mac.
 
 ### Phase 5 — Core bridge tools proxied through MCP
-- Surface `scene_*`, `script_*`, and `import_assets` to Claude Code, proxied over WS to the bridge. Enforce `launched`-only and the `busy` guard.
-- **Deliverable:** Claude Code prompt → "create a scene, add a cube, import this asset, attach this script" executes end to end, headless, no manual editor interaction.
+
+Split at the recompile/domain-reload boundary (discovered in the Phase 5 spike, §4b): the no-compile tools are straightforward; anything that compiles C# tears down and restarts the bridge WS, which is materially harder and is isolated into 5b.
+
+**Phase 5a — proxy core + no-recompile tools**
+- A persistent `BridgeClient` (request/response over the launched WS), established at `launch` and held in the session. Enforce `launched`-only and the `busy` in-memory serialization guard (§4b).
+- Proxy `scene_create`/`scene_save`, `gameobject_create` (+ cube via `execute_menu_item`), `component_add`/`component_configure`, and `import_assets` (hybrid: orchestrator copies into `Assets/`, forked `refresh_assets` imports). None of these trigger a domain reload.
+- **Deliverable:** headless "create a scene → add a cube → import an asset → save scene" end to end on a Mac.
+
+**Phase 5b — scripts + domain-reload resilience**
+- `BridgeClient` auto-reconnect across the domain reload a recompile causes. `script_write` (orchestrator writes `.cs` → `recompile_scripts`) and attach via `update_component`.
+- **Deliverable:** headless "write a script, attach it to a GameObject, recompile clean." (Dovetails with Phase 6's console/error→fix loop.)
 
 ### Phase 6 — Feedback loop
 - `read_console`, `run_tests`, and `screenshot` / `camera_view`.
