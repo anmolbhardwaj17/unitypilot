@@ -301,9 +301,19 @@ Split at the recompile/domain-reload boundary (discovered in the Phase 5 spike, 
 - **Deliverable:** "import an asset" ✅ and "write a script that compiles clean across the reload" ✅ in interactive mode; full attach + the robustness items are the cleanup pass.
 
 ### Phase 6 — Feedback loop
-- `read_console`, `run_tests`, and `screenshot` / `camera_view`.
-- Demonstrate the autonomous error→fix loop: agent writes a script with a deliberate compile error, reads the console, fixes it, recompiles clean.
-- **Deliverable:** agent recovers from a self-introduced error without human help, and can return a screenshot the human reviews.
+
+**Phase 6a — `read_console` + the autonomous error→fix loop** ✅ *(done)*
+- `read_console` proxies the fork's `get_console_logs` resource (the handler already dispatches resources by name over our WS in both modes; `ConsoleLogsService` hooks the thread-safe `logMessageReceivedThreaded`) — no new C#. Params: `logType`/`offset`/`limit`/`includeStackTrace`.
+- `script_write` now surfaces **compiler errors**. Signal split discovered in the bridge: a *successful* compile triggers a domain reload that drops the WS (existing reconnect path); a *failed* compile does **not** reload, so the `recompile_scripts` response comes back with `CompilationPipeline` messages (`message`/`file`/`line`). `script_write` captures those and returns `{ error: "compile_failed", compileErrors: [...] }` — distinct from `editor_not_processing`. No new C# (the fork's `recompile_scripts` already collects compiler messages).
+- **Deliverable:** ✅ agent recovers from a self-introduced error without human help — write broken script → `compile_failed` (exact CS error + file/line) → `read_console` → write fix → `recompiled:true` + attached. **Verified 3/3 interactive on a real Mac.**
+
+**Phase 6b — `screenshot` / `camera_view`** *(next)*
+- The visual feedback channel — net-new C# (render a camera/scene to PNG → base64 → MCP image content); not present in the fork. Interactive-vs-headless render differences to handle.
+- **Deliverable:** agent returns a screenshot the human reviews.
+
+**Phase 6c — `run_tests`** *(after 6b)*
+- Proxy the fork's `RunTestsTool` (Unity Test Runner). It's an **async** tool — works on the interactive path; the headless sync pump rejects async tools (same known gap as recompile-with-logs headless), so headless `run_tests` is deferred.
+- **Deliverable:** agent invokes the Test Runner and gets pass/fail + failures back.
 
 ### Phase 7 — Packaging + public release
 - `npm publish` the orchestrator. README with the one-line install, a **macOS-only v1** banner, the §8 scope statement, and upstream bridge attribution.

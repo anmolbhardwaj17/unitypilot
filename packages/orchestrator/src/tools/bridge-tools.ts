@@ -97,6 +97,19 @@ const PROXY_TOOLS: ProxyTool[] = [
     schema: {},
     method: "editor_status",
   },
+  {
+    name: "read_console",
+    description:
+      "Read the Unity console (newest first), the other half of the autonomous error→fix loop. " +
+      "Optionally filter by logType ('error'|'warning'|'info') and paginate. Legal only in 'launched'.",
+    schema: {
+      logType: z.enum(["error", "warning", "info"]).optional(),
+      offset: z.number().int().min(0).optional(),
+      limit: z.number().int().min(1).max(1000).optional(),
+      includeStackTrace: z.boolean().optional(),
+    },
+    method: "get_console_logs",
+  },
   // NOTE: execute_menu_item is intentionally NOT proxied — GameObject-creation menu items
   // block the main thread in batch mode and wedge the bridge. Primitives go through
   // create_primitive instead.

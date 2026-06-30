@@ -24,6 +24,13 @@ import { illegalToolResult, jsonResult } from "./result.js";
 const RELOAD_DROP_TIMEOUT_MS = 30_000;
 const RECONNECT_TIMEOUT_MS = 120_000;
 
+/** A single compiler error surfaced from a failed recompile (Phase 6a error→fix loop). */
+interface CompileError {
+  message: string;
+  file?: string;
+  line?: number;
+}
+
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
 /** Poll the editor until it's done compiling/updating after a reload (BACKLOG P2). */
@@ -198,8 +205,14 @@ export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
       //    A driven (often unfocused) editor can defer compilation, so retry the trigger a few
       //    times until the reload actually fires. Both calls are best-effort — the reload drops
       //    the connection mid-flight.
+      //
+      //    Signal split: a SUCCESSFUL compile triggers a domain reload that drops the WS, so the
+      //    recompile_scripts request never returns (we detect the drop). A FAILED compile does
+      //    NOT reload, so recompile_scripts returns with the compiler messages — we surface those
+      //    as `compile_failed` so the agent can fix them (the error→fix loop, Phase 6a).
       let dropped = false;
-      for (let attempt = 0; attempt < 4 && !dropped; attempt++) {
+      let compileErrors: CompileError[] | null = null;
+      for (let attempt = 0; attempt < 4 && !dropped && !compileErrors; attempt++) {
         const live = ctx.session.current?.client;
         if (!live || !live.isOpen()) {
           dropped = true;
@@ -213,9 +226,23 @@ export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
         } catch {
           dropped = !live.isOpen();
         }
+        if (dropped) break;
         try {
-          await ctx.bridgeMutex.run(() => live.request("recompile_scripts", {}, 10_000));
+          const res = (await ctx.bridgeMutex.run(() =>
+            live.request("recompile_scripts", { returnWithLogs: true }, RELOAD_DROP_TIMEOUT_MS),
+          )) as { logs?: { type?: string; message?: string; file?: string; line?: number }[] };
+          const errs = (res?.logs ?? []).filter((l) => l.type === "Error");
+          if (errs.length > 0) {
+            compileErrors = errs.map((e) => ({
+              message: e.message ?? "",
+              file: e.file,
+              line: e.line,
+            }));
+            break;
+          }
         } catch {
+          // The request dropped/timed out — almost always the success-path domain reload
+          // killing the in-flight request. Confirm via the socket state.
           dropped = !live.isOpen();
         }
         const deadline = Date.now() + RELOAD_DROP_TIMEOUT_MS / 2;
@@ -226,6 +253,22 @@ export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
           }
           await sleep(500);
         }
+      }
+
+      // Unity compiled the script but it has errors (no reload happened). Hand the compiler
+      // messages back so the agent can fix them and call script_write again.
+      if (compileErrors) {
+        return jsonResult(
+          {
+            error: "compile_failed",
+            tool: "script_write",
+            written: rel,
+            recompiled: false,
+            compileErrors,
+            message: `Unity compiled ${rel} with ${compileErrors.length} error(s). Fix the script using the errors below, then call script_write again. (This is the normal error→fix loop.)`,
+          },
+          true,
+        );
       }
 
       // If Unity never recompiled, it almost always means the editor window wasn't focused
