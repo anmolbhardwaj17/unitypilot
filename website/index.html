@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UnityPilot — Drive Unity with an AI agent</title>
-  <meta name="description" content="An MCP server that lets an AI agent drive the full Unity lifecycle on macOS — install the editor, create projects, build scenes, write & compile scripts, screenshot the view, read the console, and run tests, without opening the Unity Editor by hand." />
+  <title>UnityPilot — Autopilot for Unity</title>
+  <meta name="description" content="Put Unity on autopilot. Tell Claude Code what you want and UnityPilot flies the editor — building scenes, writing and fixing code, importing assets, and bringing back the shot. macOS." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%235b5bd6'/%3E%3Cpath d='M16 7l8 4.5v9L16 25l-8-4.5v-9z' fill='none' stroke='white' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.4' fill='white'/%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0a0a' stroke='%23ff5a14'/%3E%3Cpath d='M16 6l9 18-9-4-9 4z' fill='%23ff5a14'/%3E%3C/svg%3E" />
 </head>
 <body>
 
@@ -17,16 +17,15 @@
   <header class="nav">
     <div class="wrap">
       <a class="brand" href="#top">
-        <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#5b5bd6"/><path d="M16 7l8 4.5v9L16 25l-8-4.5v-9z" fill="none" stroke="white" stroke-width="2"/><circle cx="16" cy="16" r="2.4" fill="white"/></svg>
+        <svg class="mk" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6" fill="#0a0a0a" stroke="#ff5a14"/><path d="M16 6l9 18-9-4-9 4z" fill="#ff5a14"/></svg>
         UnityPilot
       </a>
-      <nav class="nav-links">
-        <a href="#how">How it works</a>
-        <a href="#loop">Autonomous loop</a>
-        <a href="#tools">Tools</a>
-        <a href="#install">Install</a>
-        <a class="nav-cta" href="https://github.com/anmolbhardwaj17/unitypilot" target="_blank" rel="noopener">GitHub</a>
+      <nav class="nav-mid">
+        <a href="#build">What it does</a>
+        <a href="#fix">Self-healing</a>
+        <a href="#fly">Flight plan</a>
       </nav>
+      <a class="nav-cta" href="https://github.com/anmolbhardwaj17/unitypilot" target="_blank" rel="noopener">GitHub ↗</a>
     </div>
   </header>
 
@@ -35,275 +34,202 @@
     <!-- HERO -->
     <section class="hero">
       <div class="wrap">
-        <span class="eyebrow">MCP server · macOS</span>
-        <h1>Drive Unity with an AI agent.</h1>
-        <p class="lead">
-          UnityPilot lets Claude Code (or any MCP host) manage the entire Unity lifecycle —
-          install the editor, create a project, launch it, build scenes, write &amp; compile C#,
-          import assets, screenshot the view, read the console, and run tests — all without you
-          opening the Unity Editor by hand.
-        </p>
-
-        <div class="badge-row">
-          <span class="badge"><span class="dot"></span> Watch a live editor, side-by-side</span>
-          <span class="badge"><span class="dot"></span> Autonomous error&nbsp;→&nbsp;fix loop</span>
-          <span class="badge"><span class="dot"></span> One <code style="font-family:var(--mono);font-size:12px">npm install</code></span>
-        </div>
-
-        <div class="install" id="install-line">
-          <span class="prompt">$</span>
-          <code>npx -y unitypilot</code>
-          <button class="copy-btn" data-copy="npx -y unitypilot">Copy</button>
-        </div>
-
-        <div class="cta-row">
-          <a class="btn btn-primary" href="#install">Get started
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </a>
-          <a class="btn btn-ghost" href="https://github.com/anmolbhardwaj17/unitypilot" target="_blank" rel="noopener">
-            <svg width="17" height="17" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-            View on GitHub
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <!-- HOW IT WORKS -->
-    <section id="how" class="alt">
-      <div class="wrap">
-        <div class="section-head">
-          <span class="eyebrow">How it works</span>
-          <h2>You talk to the agent. The agent drives Unity.</h2>
-          <p>
-            UnityPilot is two pieces shipped as one package: a Node/TypeScript <b>orchestrator</b>
-            (the MCP server) and a forked C# <b>bridge</b> it injects into your project. The agent
-            calls tools over MCP; the orchestrator drives a real Unity Editor over a WebSocket.
-          </p>
-        </div>
-
-        <div class="figure">
-          <svg viewBox="0 0 980 230" role="img" aria-label="Architecture: you to Claude Code to UnityPilot to the Unity Editor and bridge">
-            <defs>
-              <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
-                <path d="M0,0 L7,3 L0,6 Z" fill="#b6bdcb"/>
-              </marker>
-              <style>
-                .node{fill:#fff;stroke:#e0e3ea;rx:14;} .nt{font:600 15px var(--font,sans-serif);fill:#11151c;}
-                .ns{font:500 11.5px 'JetBrains Mono',monospace;fill:#858d9c;}
-                .lk{font:500 11px 'JetBrains Mono',monospace;fill:#858d9c;}
-                .ln{stroke:#b6bdcb;stroke-width:2;}
-              </style>
-            </defs>
-
-            <!-- You -->
-            <rect class="node" x="14" y="74" width="150" height="82" rx="14" fill="#fff" stroke="#e0e3ea"/>
-            <text class="nt" x="89" y="108" text-anchor="middle">You</text>
-            <text class="ns" x="89" y="130" text-anchor="middle">prompts</text>
-
-            <line class="ln" x1="168" y1="115" x2="232" y2="115" marker-end="url(#arrow)"/>
-            <text class="lk" x="200" y="104" text-anchor="middle">chat</text>
-
-            <!-- Claude Code -->
-            <rect class="node" x="236" y="74" width="172" height="82" rx="14" fill="#fff" stroke="#e0e3ea"/>
-            <text class="nt" x="322" y="108" text-anchor="middle">Claude Code</text>
-            <text class="ns" x="322" y="130" text-anchor="middle">MCP host</text>
-
-            <line class="ln" x1="412" y1="115" x2="476" y2="115" marker-end="url(#arrow)"/>
-            <text class="lk" x="444" y="104" text-anchor="middle">MCP</text>
-
-            <!-- UnityPilot -->
-            <rect class="node" x="480" y="62" width="196" height="106" rx="14" fill="#eef0fe" stroke="#c9cdfb"/>
-            <text class="nt" x="578" y="100" text-anchor="middle" fill="#3b3bbf">UnityPilot</text>
-            <text class="ns" x="578" y="122" text-anchor="middle" fill="#6b6fd6">orchestrator</text>
-            <text class="ns" x="578" y="140" text-anchor="middle" fill="#6b6fd6">lifecycle · state · tools</text>
-
-            <line class="ln" x1="680" y1="115" x2="744" y2="115" marker-end="url(#arrow)"/>
-            <text class="lk" x="712" y="104" text-anchor="middle">WebSocket</text>
-
-            <!-- Unity -->
-            <rect class="node" x="748" y="62" width="218" height="106" rx="14" fill="#fff" stroke="#e0e3ea"/>
-            <text class="nt" x="857" y="98" text-anchor="middle">Unity Editor</text>
-            <text class="ns" x="857" y="120" text-anchor="middle">+ injected C# bridge</text>
-            <text class="ns" x="857" y="138" text-anchor="middle">visible by default</text>
-          </svg>
-          <p class="figure-caption">The orchestrator is the moat; the bridge is a fork of CoderGamester/mcp-unity, made headless-capable and bundled in the package.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- LIFECYCLE -->
-    <section id="lifecycle">
-      <div class="wrap">
-        <div class="section-head">
-          <span class="eyebrow">The lifecycle</span>
-          <h2>A state machine the agent walks for you.</h2>
-          <p>Each tool is legal only in the right state, and the answer always tells the agent the next move. Resolved paths are frozen once into <code style="font-family:var(--mono);font-size:13px">.unity-mcp/state.json</code> so nothing drifts.</p>
-        </div>
-
-        <div class="steps">
-          <div class="step">
-            <div class="num">1</div>
-            <h3>Ensure editor</h3>
-            <p><code>ensure_editor</code> detects or installs a Unity editor for your CPU via the Hub CLI.</p>
-          </div>
-          <div class="step">
-            <div class="num">2</div>
-            <h3>Create project</h3>
-            <p><code>create_project</code> scaffolds the project and injects the bridge into its manifest.</p>
-          </div>
-          <div class="step">
-            <div class="num">3</div>
-            <h3>Launch</h3>
-            <p><code>launch</code> boots the editor — visible by default so you watch it live; headless for CI.</p>
-          </div>
-          <div class="step">
-            <div class="num">4</div>
-            <h3>Build &amp; iterate</h3>
-            <p>Scenes, objects, scripts, assets, screenshots, console, tests — the whole inner loop.</p>
+        <div class="hero-top">
+          <span class="lab"><span class="n">UNITY MCP</span> · AUTOPILOT · v0.1.0</span>
+          <div class="hud" aria-hidden="true">
+            <span class="t">HDG <span class="v" data-min="0" data-max="359" data-pad="3" data-suffix="°">042°</span></span>
+            <span class="t">ALT <span class="v g" data-min="8000" data-max="38000" data-comma="1" data-suffix=" FT">12,400 FT</span></span>
+            <span class="t">SPD <span class="v" data-min="180" data-max="320" data-suffix=" KT">268 KT</span></span>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- AUTONOMOUS LOOP -->
-    <section id="loop" class="alt">
-      <div class="wrap">
-        <div class="two-col">
+        <div class="hero-grid">
           <div>
-            <span class="eyebrow">The payoff</span>
-            <h2 style="font-size:clamp(26px,3.6vw,38px)">The agent fixes its own mistakes.</h2>
-            <p class="muted" style="margin-top:14px">
-              Write a script with a compile error and UnityPilot hands the agent the exact compiler
-              message — file and line — instead of a silent stall. The agent reads the console, edits
-              the script, and recompiles clean. No human in the loop.
+            <h1>Put Unity on<br /><span class="serif acc">autopilot.</span></h1>
+            <p class="lead">
+              You're the pilot. Tell Claude Code what you want and UnityPilot flies the editor —
+              building scenes, writing and fixing the code, importing your assets, and bringing back
+              the shot. No Unity experience needed.
             </p>
-            <ul class="feature-list">
-              <li><span class="ck">✓</span><span><b>script_write</b> survives the domain reload, then reports <code style="font-family:var(--mono);font-size:12.5px">compile_failed</code> with the errors.</span></li>
-              <li><span class="ck">✓</span><span><b>read_console</b> surfaces the same error — the other half of the loop.</span></li>
-              <li><span class="ck">✓</span><span>Fix and re-run → <code style="font-family:var(--mono);font-size:12.5px">recompiled: true</code>, component attached.</span></li>
-            </ul>
+
+            <div class="install" id="install-line">
+              <span class="prompt">$</span>
+              <code>npx -y unitypilot</code>
+              <button class="copy-btn" data-copy="npx -y unitypilot">Copy</button>
+            </div>
+
+            <div class="cta-row">
+              <a class="btn btn-primary" href="#fly">Begin pre-flight →</a>
+              <a class="btn btn-ghost" href="#build">See what it does</a>
+            </div>
           </div>
 
-          <div class="codeblock" aria-label="Example error to fix flow">
-<span class="c-cm"># 1 · agent writes a script with a typo</span>
-<span class="c-key">script_write</span> ClaudeSpin.cs
-<span class="c-cm">→</span> {
-  <span class="c-key">"error"</span>: <span class="c-amber">"compile_failed"</span>,
-  <span class="c-key">"compileErrors"</span>: [{
-    <span class="c-key">"message"</span>: <span class="c-str">"CS0103: 'transfrm' does not exist"</span>,
-    <span class="c-key">"file"</span>: <span class="c-str">"Assets/Scripts/ClaudeSpin.cs"</span>,
-    <span class="c-key">"line"</span>: <span class="c-amber">6</span>
-  }]
-}
-
-<span class="c-cm"># 2 · agent fixes the typo, re-runs</span>
-<span class="c-key">script_write</span> ClaudeSpin.cs
-<span class="c-cm">→</span> { <span class="c-key">"recompiled"</span>: <span class="c-green">true</span>, <span class="c-key">"attached"</span>: <span class="c-green">true</span> }
+          <!-- flight computer / CRT console -->
+          <div class="console">
+            <div class="ctop">
+              <span class="ttl">Flight Computer</span>
+              <span class="lab"><span class="n">●</span> REC · SESSION 07</span>
+            </div>
+            <div class="crt">
+              <div class="crt-bar"><span>UNITYPILOT · TTY</span><span><span class="pwr"></span></span></div>
+<pre>&gt; build a spinning cube scene
+<span class="dim">[</span><span class="ok">ok</span><span class="dim">]</span> editor online · project armed
+<span class="dim">[</span><span class="ok">ok</span><span class="dim">]</span> scene "Level1" created
+<span class="dim">[</span><span class="ok">ok</span><span class="dim">]</span> player cube added
+<span class="dim">[</span><span class="ok">ok</span><span class="dim">]</span> Spin.cs written · compiled
+<span class="dim">[</span><span class="ok">ok</span><span class="dim">]</span> screenshot captured → chat
+&gt; <span class="cur">_</span></pre>
+            </div>
+            <div class="cfoot">
+              <div class="navlights">
+                <div class="nl"><i></i> Editor</div>
+                <div class="nl"><i></i> Bridge</div>
+                <div class="nl amber"><i></i> Build</div>
+              </div>
+              <div class="radar" aria-hidden="true">
+                <div class="sweep"></div>
+                <span class="blip" style="left:64%;top:38%"></span>
+                <span class="blip" style="left:40%;top:60%"></span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- SCREENSHOT SHOWCASE -->
-    <section id="see">
+    <!-- DITHER BAND -->
+    <section class="band" style="padding:0;border-bottom:1px solid var(--line)">
+      <div class="ditherwrap empty">
+        <!-- swap in a dithered hero render here: <img src="assets/hero-dither.png" alt="" /> -->
+        <div class="reticle" id="reticle" aria-hidden="true">
+          <svg viewBox="0 0 92 92" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="46" cy="46" r="20"/><path d="M46 6v18M46 68v18M6 46h18M68 46h18"/><rect x="2" y="2" width="10" height="10"/><rect x="80" y="2" width="10" height="10"/><rect x="2" y="80" width="10" height="10"/><rect x="80" y="80" width="10" height="10"/></svg>
+        </div>
+        <div class="overlay">
+          <h2>What will you <span class="serif">build?</span></h2>
+          <div class="cap">Describe it · UnityPilot flies the rest</div>
+        </div>
+        <div class="tagcard"><b>Target acquired</b><span>scene · script · shot</span></div>
+        <div class="corner">
+          <div class="sq dark"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8V3h5M17 12v5h-5M12 3h5v5M8 17H3v-5"/></svg></div>
+          <div class="sq"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="9" r="6"/><path d="M14 14l4 4"/></svg></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULES / WHAT IT DOES -->
+    <section id="build">
       <div class="wrap">
-        <div class="two-col">
-          <div class="shot">
-            <div class="bar">
-              <span class="tdot"></span><span class="tdot"></span><span class="tdot"></span>
-              <span class="ttl">screenshot → .unity-mcp/screenshots/shot.png</span>
+        <div class="head">
+          <h2>The instrument panel.</h2>
+          <div class="head-r"><span class="lab"><span class="n">06 SYSTEMS</span> · ALL NOMINAL</span><p>Talk to Claude Code like a teammate. UnityPilot works the controls — you just read the results.</p></div>
+        </div>
+
+        <div class="modules">
+          <div class="mod">
+            <div class="mlab"><span class="id">INST 01 · SETUP</span><span class="ic">⌖</span></div>
+            <h3>Sets Unity up for you</h3>
+            <p>Installs the right editor and creates the project. You never open Unity Hub or click around.</p>
+          </div>
+          <div class="mod">
+            <div class="mlab"><span class="id">INST 02 · SCENE</span><span class="ic">⌖</span></div>
+            <h3>Builds the scene</h3>
+            <p>Describe a level and it creates scenes, drops in objects, and frames the camera — in a live editor you can watch.</p>
+          </div>
+          <div class="mod">
+            <div class="mlab"><span class="id">INST 03 · CODE</span><span class="ic">⌖</span></div>
+            <h3>Writes the game code</h3>
+            <p>It writes C#, compiles it, and wires it to your objects — movement, spinning, jumping, whatever you ask.</p>
+          </div>
+          <div class="mod">
+            <div class="mlab"><span class="id">INST 04 · ASSETS</span><span class="ic">⌖</span></div>
+            <h3>Brings your assets in</h3>
+            <p>Drop in models and textures and it imports them into the project, ready to use.</p>
+          </div>
+          <div class="mod">
+            <div class="mlab"><span class="id">INST 05 · VISION</span><span class="ic">⌖</span></div>
+            <h3>Shows you the result</h3>
+            <p>Snaps a screenshot of the game view straight into the chat — so the agent (and you) can see it.</p>
+          </div>
+          <div class="mod">
+            <div class="mlab"><span class="id">INST 06 · TEST</span><span class="ic">⌖</span></div>
+            <h3>Runs the tests</h3>
+            <p>Kicks off Unity's Test Runner and reports what passed and what failed.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SELF-HEALING -->
+    <section id="fix">
+      <div class="wrap">
+        <div class="head">
+          <h2>It debugs its <span class="serif acc">own</span> code.</h2>
+          <div class="head-r"><span class="lab"><span class="n">FAIL-SAFE</span> · AUTO-RECOVER</span><p>Most tools hand you code and wish you luck. UnityPilot watches it compile and fixes what breaks.</p></div>
+        </div>
+        <div class="modules">
+          <div class="mod span2">
+            <div class="mlab"><span class="id">RECOVERY LOG</span><span class="ic">↺</span></div>
+            <h3>Hit a compile error? It fixes it itself.</h3>
+            <p>It reads the console, finds the exact file and line, edits the script, and re-runs — until it's clean. You just see "done."</p>
+            <div class="term">
+<span class="dim"># wrote a script with a typo</span>
+→ <span class="hot">compile_failed</span> · "CS0103: 'transfrm' does not exist" · line 6
+<span class="dim"># reads console, fixes the file, re-runs</span>
+→ <span class="ok">recompiled ✓   component attached ✓</span>
             </div>
-            <img src="assets/demo-screenshot.png" alt="A Unity scene rendered by UnityPilot's screenshot tool: skybox with a white cube" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MONITOR / SCREENSHOT -->
+    <section>
+      <div class="wrap">
+        <div class="monitor-grid">
+          <div class="monitor">
+            <div class="scr"><img src="assets/demo-screenshot.png" alt="A Unity scene rendered by UnityPilot: skybox with a cube" loading="lazy" /></div>
+            <div class="mlabel"><span>GUN CAMERA · FIG.01</span><span>640 × 360 · CAMERA.MAIN</span></div>
           </div>
           <div>
-            <span class="eyebrow">The visual channel</span>
-            <h2 style="font-size:clamp(26px,3.6vw,38px)">The agent can <em>see</em> the scene.</h2>
-            <p class="muted" style="margin-top:14px">
-              <b>This is a real frame</b> returned by the <code style="font-family:var(--mono);font-size:13px">screenshot</code>
-              tool during testing — Unity's skybox with a cube the agent created. The image comes back
-              inline (so the agent inspects it) and is saved to disk (so you can open it). Render
-              <code style="font-family:var(--mono);font-size:13px">Camera.main</code>, a named camera, or the Scene view.
-            </p>
+            <span class="lab"><span class="n">VISUAL CHANNEL</span></span>
+            <h2 style="font-size:clamp(28px,4vw,42px);margin-top:16px">It brings back<br />the <span class="serif acc">shot.</span></h2>
+            <p class="muted" style="margin-top:16px;font-size:15.5px">This is a real frame UnityPilot captured during testing — Unity's skybox with a cube it created. The image lands inline in the chat and is saved to disk. Render the game camera, a named camera, or the Scene view.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- TOOLS -->
-    <section id="tools" class="alt">
+    <!-- FLIGHT PLAN / HOW TO USE -->
+    <section id="fly">
       <div class="wrap">
-        <div class="section-head">
-          <span class="eyebrow">The toolbox</span>
-          <h2>Eighteen tools, one coherent surface.</h2>
-          <p>Lifecycle tools advance the state machine; bridge tools act on the launched editor.</p>
+        <div class="head">
+          <h2>Flight plan.</h2>
+          <div class="head-r"><span class="lab"><span class="n">PRE-FLIGHT</span> · ~1 MIN</span><p>If you already use Claude Code, you're basically cleared for takeoff.</p></div>
         </div>
-
-        <div class="tool-groups">
-          <div class="tool-group">
-            <h3><span class="tg-dot" style="background:#5b5bd6"></span> Lifecycle</h3>
-            <div class="tool-pills">
-              <span class="pill"><b>status</b></span><span class="pill"><b>ensure_editor</b></span>
-              <span class="pill"><b>create_project</b></span><span class="pill"><b>launch</b></span>
-              <span class="pill"><b>shutdown</b></span>
-            </div>
+        <div class="use-grid">
+          <div class="steps">
+            <div class="s"><span class="num">01</span><div><b>Add it once</b><p>Drop the snippet into your <span class="kbd">.mcp.json</span> — or just run <span class="kbd">npx -y unitypilot</span>.</p></div></div>
+            <div class="s"><span class="num">02</span><div><b>Open Claude Code</b><p>Reconnect so it picks up UnityPilot. No Unity windows to wrangle.</p></div></div>
+            <div class="s"><span class="num">03</span><div><b>Just ask</b><p>Describe what you want. UnityPilot does the Unity part and reports back.</p></div></div>
           </div>
-          <div class="tool-group">
-            <h3><span class="tg-dot" style="background:#2bb6a3"></span> Scenes &amp; GameObjects</h3>
-            <div class="tool-pills">
-              <span class="pill"><b>scene_create</b></span><span class="pill"><b>scene_save</b></span>
-              <span class="pill"><b>scene_get_info</b></span><span class="pill"><b>gameobject_create_primitive</b></span>
-              <span class="pill"><b>gameobject_update</b></span><span class="pill"><b>component_add</b></span>
-              <span class="pill"><b>gameobject_get</b></span>
-            </div>
-          </div>
-          <div class="tool-group">
-            <h3><span class="tg-dot" style="background:#e0883b"></span> Authoring &amp; feedback</h3>
-            <div class="tool-pills">
-              <span class="pill"><b>script_write</b></span><span class="pill"><b>import_assets</b></span>
-              <span class="pill"><b>read_console</b></span><span class="pill"><b>screenshot</b></span>
-              <span class="pill"><b>run_tests</b></span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- INSTALL -->
-    <section id="install">
-      <div class="wrap">
-        <div class="section-head">
-          <span class="eyebrow">Install</span>
-          <h2>Add it to your MCP host in one block.</h2>
-          <p>For Claude Code, drop this into your <code style="font-family:var(--mono);font-size:13px">.mcp.json</code>, reconnect, and call <code style="font-family:var(--mono);font-size:13px">status</code>.</p>
-        </div>
-
-        <div class="two-col" style="align-items:start">
-          <div class="codeblock" aria-label=".mcp.json configuration">
-{
-  <span class="c-key">"mcpServers"</span>: {
-    <span class="c-key">"unitypilot"</span>: {
-      <span class="c-key">"command"</span>: <span class="c-str">"npx"</span>,
-      <span class="c-key">"args"</span>: [<span class="c-str">"-y"</span>, <span class="c-str">"unitypilot"</span>],
-      <span class="c-key">"env"</span>: {
-        <span class="c-key">"UNITY_MCP_PROJECT_ROOT"</span>: <span class="c-str">"/path/to/UnityProject"</span>
-      }
+          <div>
+            <div class="code">{
+  <span class="k">"mcpServers"</span>: {
+    <span class="k">"unitypilot"</span>: {
+      <span class="k">"command"</span>: <span class="s2">"npx"</span>,
+      <span class="k">"args"</span>: [<span class="s2">"-y"</span>, <span class="s2">"unitypilot"</span>],
+      <span class="k">"env"</span>: { <span class="k">"UNITY_MCP_PROJECT_ROOT"</span>: <span class="s2">"/path/to/project"</span> }
     }
   }
-}
+}</div>
+            <div class="reqs">
+              <span class="req">◇ <b>macOS</b></span>
+              <span class="req">◇ <b>Node 22+</b></span>
+              <span class="req">◇ <b>Unity Hub</b></span>
+              <span class="req">◇ <b>Free Unity license</b></span>
+            </div>
+            <div class="notice">⚠ macOS only for v1 — Apple Silicon &amp; Intel. Windows / Linux open for contributors.</div>
           </div>
-
-          <div class="req-grid" style="grid-template-columns:1fr 1fr">
-            <div class="req"><div class="ic">🍎</div><h3>macOS</h3><p>Apple Silicon or Intel.</p></div>
-            <div class="req"><div class="ic">⬢</div><h3>Node ≥ 22</h3><p>The orchestrator runtime.</p></div>
-            <div class="req"><div class="ic">🎮</div><h3>Unity Hub</h3><p>Installed; editors come via its CLI.</p></div>
-            <div class="req"><div class="ic">🔑</div><h3>Unity license</h3><p>A free Personal license works.</p></div>
-          </div>
-        </div>
-
-        <div class="notice" style="margin-top:30px">
-          <span style="font-size:18px">⚠️</span>
-          <div><b>v1 is macOS only.</b> Apple Silicon and Intel are supported. Windows and Linux exist
-          as <code style="font-family:var(--mono);font-size:13px">NotImplemented</code> resolver stubs for contributors to fill in.</div>
         </div>
       </div>
     </section>
@@ -313,31 +239,29 @@
   <footer>
     <div class="wrap">
       <div class="foot-grid">
-        <div style="max-width:340px">
+        <div style="max-width:330px">
           <a class="brand" href="#top">
-            <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#5b5bd6"/><path d="M16 7l8 4.5v9L16 25l-8-4.5v-9z" fill="none" stroke="white" stroke-width="2"/><circle cx="16" cy="16" r="2.4" fill="white"/></svg>
+            <svg class="mk" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6" fill="#0a0a0a" stroke="#ff5a14"/><path d="M16 6l9 18-9-4-9 4z" fill="#ff5a14"/></svg>
             UnityPilot
           </a>
-          <p>The Unity MCP orchestrator. Drive the full Unity lifecycle from your AI agent — macOS v1.</p>
+          <p>Autopilot for Unity. You fly the idea — it works the controls. macOS v1.</p>
         </div>
         <div class="foot-links">
           <div class="foot-col">
-            <h4>Project</h4>
-            <a href="#how">How it works</a>
-            <a href="#tools">Tools</a>
-            <a href="#install">Install</a>
+            <h4>Systems</h4>
+            <a href="#build">What it does</a><a href="#fix">Self-healing</a><a href="#fly">Flight plan</a>
           </div>
           <div class="foot-col">
-            <h4>Links</h4>
-            <a href="https://github.com/anmolbhardwaj17/unitypilot" target="_blank" rel="noopener">GitHub</a>
-            <a href="https://www.npmjs.com/package/unitypilot" target="_blank" rel="noopener">npm</a>
-            <a href="https://github.com/CoderGamester/mcp-unity" target="_blank" rel="noopener">Upstream bridge</a>
+            <h4>Channels</h4>
+            <a href="https://github.com/anmolbhardwaj17/unitypilot" target="_blank" rel="noopener">GitHub ↗</a>
+            <a href="https://www.npmjs.com/package/unitypilot" target="_blank" rel="noopener">npm ↗</a>
+            <a href="https://github.com/CoderGamester/mcp-unity" target="_blank" rel="noopener">Built on mcp-unity ↗</a>
           </div>
         </div>
       </div>
       <div class="foot-bottom">
-        <span>MIT © Anmol Bhardwaj · Bundled bridge MIT © CoderGamester</span>
-        <span>Built phase by phase.</span>
+        <span>MIT © Anmol Bhardwaj · Bridge MIT © CoderGamester</span>
+        <span>You're the pilot.</span>
       </div>
     </div>
   </footer>
