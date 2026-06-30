@@ -1,0 +1,8 @@
+{
+  "name": "com.unitymcp.bridge",
+  "version": "0.0.0",
+  "displayName": "Unity MCP Bridge (stub)",
+  "description": "Placeholder package injected into projects by the Unity MCP Orchestrator so manifest injection can be built and tested. The real WebSocket-server bridge is forked and vendored in Phase 4 (SPEC §7).",
+  "unity": "6000.0",
+  "hideInEditor": false
+}

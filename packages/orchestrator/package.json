@@ -12,7 +12,8 @@
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "resolver:check": "node dist/dev/resolver-check.js"
+    "resolver:check": "node dist/dev/resolver-check.js",
+    "lifecycle:check": "node dist/dev/lifecycle-check.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",

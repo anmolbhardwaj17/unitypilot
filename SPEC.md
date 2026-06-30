@@ -127,12 +127,13 @@ Split by which process executes them.
 
 **`ensure_editor`**
 - Input: `{ unityVersion: string, unityPath?: string }`
-- Behavior: if `unityPath` given, verify it exists and matches version → freeze it. Else resolve via the macOS resolver (§5); install via Unity Hub CLI if missing. Detect arch with `uname -m`, install the matching build (arm64 vs x64).
-- Done = editor binary exists, version matches, path frozen in state. → `editor_ready`
+- Behavior: if `unityPath` given, verify it exists (per §5, verifying it *matches* the version is deferred to `launch`) → freeze it. Else resolve via the macOS resolver (§5); install via Unity Hub CLI if missing. Detect arch with `uname -m`, install the matching build (arm64 vs x64). `arch`, `editorPath`, and `unityVersion` are frozen.
+- Done = editor binary exists, path frozen in state. → `editor_ready`
 
 **`create_project`**
 - Input: `{ projectPath: string, template?: string, targetPlatform?: string }`
-- Behavior: run `Unity -createProject <path> -batchmode -quit`. Then inject the bridge package into `<path>/Packages/manifest.json`. Write initial `state.json`.
+- `projectPath` **must equal the resolved project root** (§3): state and the Unity project stay colocated. A mismatch returns a structured error telling the user to set `UNITY_MCP_PROJECT_ROOT` (or run the orchestrator from that directory). `template`/`targetPlatform` are accepted but not yet wired in v1.
+- Behavior: run `Unity -createProject <root> -batchmode -nographics -quit` (**never** `-logFile`, G1). Idempotent/resumable: if the project is already scaffolded (`Packages/manifest.json` exists), skip the editor run. Then inject the bridge as a local `file:` dependency into `<root>/Packages/manifest.json`. Freeze `projectPath`, write `state.json`.
 - Done = project folder exists, bridge registered in manifest, no creation errors. → `project_created`
 
 **`launch`**
@@ -203,11 +204,12 @@ export interface UnityResolver {
 
 ## 6. Critical gotchas (bake these in from day one)
 
-- **G1 — Never use `-logFile`.** The bridge relies on Unity's standard output for communication. Passing `-logFile` breaks comms. Inherited hard constraint from the nurture-tech runner pattern.
+- **G1 — Never use `-logFile` while the bridge is attached (`launch`).** The bridge relies on Unity's standard output for communication; passing `-logFile` during a bridge session breaks comms. Inherited hard constraint from the nurture-tech runner pattern. **Scope (clarified in Phase 3):** this applies to `launch` and any bridge-attached run. For bridge-free headless runs (`create_project`'s `-createProject`), the orchestrator passes `-logFile -` to capture Unity's log on **stdout** — there is no bridge to collide with — so failures produce a real diagnostic instead of an opaque exit code.
 - **G2 — Apple Silicon vs Intel editor builds are separate binaries.** Always install the arch-matched build. Detect with `uname -m`; never assume. Mismatched arch is a confusing silent failure.
 - **G3 — Gatekeeper / first-launch permission hang.** macOS may quarantine or prompt on a freshly installed editor binary the first time it's launched non-interactively, and headless launch can hang silently waiting on a prompt the user never sees. `launch` and `status` must **time out** and report `"editor launched but no handshake — possible macOS permissions prompt; try launching the editor once manually"` rather than hanging forever.
 - **G4 — Frozen paths, never re-resolved.** Per §2, once a path is in `state.json` it is read, not recomputed.
 - **G5 — `busy` state guards concurrency.** Don't let two bridge operations race. Queue or reject.
+- **G6 — Headless Unity needs an activated license (discovered in Phase 3).** `-batchmode` Unity refuses to run without an active license *even though no GUI opens*; it exits non-zero (observed: code **198**, log: `No valid Unity Editor license found` / `'com.unity.editor.headless' was not found`). This is an environmental prerequisite the orchestrator cannot satisfy itself. `create_project`/`launch` must detect this signature and return an actionable diagnostic ("activate a license in Unity Hub → sign in → ensure a Personal/Pro license is active, then retry"), not a raw exit code. The user activates the license once; the Hub stores it. A Personal license activated via the Hub is sufficient.
 
 ---
 
