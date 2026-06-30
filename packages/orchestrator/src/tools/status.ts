@@ -9,8 +9,9 @@
 import { type LifecycleState, nextLifecycleTool } from "../fsm/machine.js";
 import { FROZEN_KEYS, type ProjectState } from "../state/schema.js";
 
-/** Live runtime overlay (not persisted): bridge connectivity and in-flight `busy`. */
+/** Live runtime overlay (not persisted): editor process + bridge connectivity + in-flight `busy`. */
 export interface StatusRuntime {
+  editorAlive: boolean;
   bridgeConnected: boolean;
   busy: boolean;
 }
@@ -26,6 +27,8 @@ export interface StatusResult {
   frozen: string[];
   /** The next lifecycle tool to call to make progress, or `null` if fully advanced. */
   nextTool: string | null;
+  /** Whether the launched editor process is still alive. */
+  editorAlive: boolean;
   /** Whether the orchestrator currently holds an open bridge connection. */
   bridgeConnected: boolean;
   /** Whether a bridge call is in flight (the in-memory `busy` overlay on `launched`). */
@@ -33,6 +36,7 @@ export interface StatusResult {
 }
 
 export function getStatus(state: ProjectState | null, runtime?: StatusRuntime): StatusResult {
+  const editorAlive = runtime?.editorAlive ?? false;
   const bridgeConnected = runtime?.bridgeConnected ?? false;
   const busy = runtime?.busy ?? false;
 
@@ -46,6 +50,7 @@ export function getStatus(state: ProjectState | null, runtime?: StatusRuntime): 
       bridgeVersion: null,
       frozen: [],
       nextTool: nextLifecycleTool("none"),
+      editorAlive,
       bridgeConnected,
       busy,
     };
@@ -60,6 +65,7 @@ export function getStatus(state: ProjectState | null, runtime?: StatusRuntime): 
     bridgeVersion: state.bridgeVersion ?? null,
     frozen: FROZEN_KEYS.filter((k) => state.frozen[k] === true),
     nextTool: nextLifecycleTool(state.state),
+    editorAlive,
     bridgeConnected,
     busy,
   };

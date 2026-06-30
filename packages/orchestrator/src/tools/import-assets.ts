@@ -13,6 +13,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { resolveProjectRoot } from "../config.js";
 import { IllegalToolError, assertBridgeToolLegal } from "../fsm/machine.js";
+import { getEffectiveState } from "../state/reconcile.js";
 import { callBridge } from "./bridge-tools.js";
 import type { ToolContext } from "./context.js";
 import { illegalToolResult, jsonResult } from "./result.js";
@@ -24,7 +25,7 @@ export function registerImportAssets(server: McpServer, ctx: ToolContext): void 
       "Legal only in 'launched'.",
     { sources: z.array(z.string()).min(1), destination: z.string() },
     async (args) => {
-      const state = (await ctx.store.read())?.state ?? "none";
+      const state = await getEffectiveState(ctx);
       try {
         assertBridgeToolLegal(state, "import_assets");
       } catch (err) {

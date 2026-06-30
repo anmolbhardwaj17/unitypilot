@@ -17,6 +17,7 @@ import { z } from "zod";
 import { resolveProjectRoot } from "../config.js";
 import { IllegalToolError, assertBridgeToolLegal } from "../fsm/machine.js";
 import { connectBridge } from "../lifecycle/launch-node.js";
+import { getEffectiveState } from "../state/reconcile.js";
 import type { ToolContext } from "./context.js";
 import { illegalToolResult, jsonResult } from "./result.js";
 
@@ -62,7 +63,7 @@ export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
       componentName: z.string().optional().describe("Script class name (required to attach)"),
     },
     async (args) => {
-      const state = (await ctx.store.read())?.state ?? "none";
+      const state = await getEffectiveState(ctx);
       try {
         assertBridgeToolLegal(state, "script_write");
       } catch (err) {

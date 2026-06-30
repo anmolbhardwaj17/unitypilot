@@ -10,6 +10,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { IllegalToolError, assertBridgeToolLegal } from "../fsm/machine.js";
+import { getEffectiveState } from "../state/reconcile.js";
 import type { ToolContext } from "./context.js";
 import { type ToolResult, illegalToolResult, jsonResult } from "./result.js";
 
@@ -101,7 +102,7 @@ export async function callBridge(
   method: string,
   params: object,
 ): Promise<ToolResult> {
-  const state = (await ctx.store.read())?.state ?? "none";
+  const state = await getEffectiveState(ctx);
   try {
     assertBridgeToolLegal(state, toolName);
   } catch (err) {

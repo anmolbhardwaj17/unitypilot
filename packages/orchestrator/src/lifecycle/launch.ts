@@ -25,6 +25,8 @@ export interface EditorHandle {
 }
 
 export interface LaunchDeps {
+  /** Optional pre-launch cleanup (BACKLOG P1): clear a stale lockfile / lingering editor. */
+  prepareProject?: (projectPath: string) => Promise<void>;
   startEditor(editorPath: string, projectPath: string, headless: boolean): EditorHandle;
   /** One attempt to open a persistent bridge connection; resolves to a live client or null. */
   connectBridge(): Promise<BridgeClient | null>;
@@ -79,6 +81,7 @@ export async function launch(
   const pollInterval = deps.pollIntervalMs ?? HANDSHAKE_POLL_INTERVAL_MS;
   const deadline = now() + (deps.handshakeTimeoutMs ?? DEFAULT_HANDSHAKE_TIMEOUT_MS);
 
+  await deps.prepareProject?.(projectRoot);
   const handle = deps.startEditor(current.editorPath, projectRoot, input.headless ?? false);
 
   try {

@@ -14,13 +14,15 @@ describe("getStatus", () => {
       bridgeVersion: null,
       frozen: [],
       nextTool: "ensure_editor",
+      editorAlive: false,
       bridgeConnected: false,
       busy: false,
     });
   });
 
-  it("surfaces the live bridge/busy runtime overlay", () => {
-    const result = getStatus(null, { bridgeConnected: true, busy: true });
+  it("surfaces the live editor/bridge/busy runtime overlay", () => {
+    const result = getStatus(null, { editorAlive: true, bridgeConnected: true, busy: true });
+    expect(result.editorAlive).toBe(true);
     expect(result.bridgeConnected).toBe(true);
     expect(result.busy).toBe(true);
   });

@@ -3,12 +3,36 @@
  * the bridge WebSocket. Uses Node 22's built-in global `WebSocket` — no new dep.
  */
 
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
+import { access, rm } from "node:fs/promises";
+import { join } from "node:path";
 import { type BridgeClient, NodeBridgeClient } from "../bridge/client.js";
 import { BRIDGE_WS_PATH, BRIDGE_WS_PORT } from "../config.js";
 import { type EditorHandle, HANDSHAKE_CONNECT_TIMEOUT_MS } from "./launch.js";
 
 const MAX_LOG = 200_000;
+const KILL_GRACE_MS = 3_000;
+
+/**
+ * Clear a stale editor for this project before launching (BACKLOG P1). A
+ * `Temp/UnityLockfile` means a prior editor didn't exit cleanly — Unity will refuse to
+ * open the project. Kill any lingering editor process for this exact project path, then
+ * remove the lockfile.
+ */
+export async function clearStaleEditor(projectPath: string): Promise<void> {
+  const lockfile = join(projectPath, "Temp", "UnityLockfile");
+  try {
+    await access(lockfile);
+  } catch {
+    return; // no lockfile → nothing stale
+  }
+  // pkill -f matches the full command line; the editor's includes `-projectPath <path>`.
+  await new Promise<void>((resolve) => {
+    execFile("pkill", ["-f", projectPath], () => resolve());
+  });
+  await new Promise((r) => setTimeout(r, 1_000));
+  await rm(lockfile, { force: true }).catch(() => {});
+}
 
 /**
  * Boot the editor non-quitting. `-logFile -` streams Unity's log to stdout for
@@ -54,6 +78,17 @@ export function startEditorProcess(
       } catch {
         // already gone
       }
+      // Force-kill if it ignores SIGTERM, so the editor never lingers (BACKLOG P1).
+      const timer = setTimeout(() => {
+        if (alive) {
+          try {
+            child.kill("SIGKILL");
+          } catch {
+            // already gone
+          }
+        }
+      }, KILL_GRACE_MS);
+      timer.unref?.();
     },
     capturedLog: () => log,
   };

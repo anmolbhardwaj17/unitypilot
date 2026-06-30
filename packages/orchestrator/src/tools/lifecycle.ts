@@ -10,46 +10,32 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { BRIDGE_PACKAGE_NAME, resolveBridgePackagePath, resolveProjectRoot } from "../config.js";
-import { IllegalToolError, type LifecycleState, assertToolLegal } from "../fsm/machine.js";
+import { IllegalToolError, assertToolLegal } from "../fsm/machine.js";
 import { createProject } from "../lifecycle/create-project.js";
 import { ensureEditor } from "../lifecycle/ensure-editor.js";
-import { bridgeWsUrl, connectBridge, startEditorProcess } from "../lifecycle/launch-node.js";
+import {
+  bridgeWsUrl,
+  clearStaleEditor,
+  connectBridge,
+  startEditorProcess,
+} from "../lifecycle/launch-node.js";
 import { launch, shutdown } from "../lifecycle/launch.js";
 import { NodeFilesystem, NodeProcessRunner } from "../lifecycle/node-deps.js";
 import { createResolver } from "../resolver/index.js";
+import { getEffectiveState } from "../state/reconcile.js";
 import type { StateStore } from "../state/store.js";
 import type { ToolContext } from "./context.js";
+import { type ToolResult, illegalToolResult, jsonResult } from "./result.js";
 import { getStatus } from "./status.js";
 
-type ToolResult = { isError?: boolean; content: { type: "text"; text: string }[] };
-
-function jsonResult(payload: unknown, isError: boolean): ToolResult {
-  return { isError, content: [{ type: "text", text: JSON.stringify(payload) }] };
-}
-
-async function currentState(store: StateStore): Promise<LifecycleState> {
-  return (await store.read())?.state ?? "none";
-}
-
-/** Run the FSM guard; returns a structured error result if illegal, else null. */
-async function guard(store: StateStore, tool: string): Promise<ToolResult | null> {
-  const state = await currentState(store);
+/** Run the FSM guard (with resume reconcile); returns a structured error if illegal, else null. */
+async function guard(ctx: ToolContext, tool: string): Promise<ToolResult | null> {
+  const state = await getEffectiveState(ctx);
   try {
     assertToolLegal(state, tool);
     return null;
   } catch (err) {
-    if (err instanceof IllegalToolError) {
-      return jsonResult(
-        {
-          error: "illegal_tool_for_state",
-          tool,
-          currentState: err.currentState,
-          requiredTool: err.requiredTool,
-          message: err.message,
-        },
-        true,
-      );
-    }
+    if (err instanceof IllegalToolError) return illegalToolResult(err);
     throw err;
   }
 }
@@ -80,7 +66,7 @@ export function registerLifecycleTools(server: McpServer, ctx: ToolContext): voi
     "Resolve or install a Unity editor and freeze its path. Legal in state 'none'. → editor_ready.",
     { unityVersion: z.string(), unityPath: z.string().optional() },
     async (args) => {
-      const blocked = await guard(store, "ensure_editor");
+      const blocked = await guard(ctx, "ensure_editor");
       if (blocked) return blocked;
       const resolver = createResolver();
       return runBody(store, "ensure_editor", () => ensureEditor(resolver, store, args));
@@ -96,7 +82,7 @@ export function registerLifecycleTools(server: McpServer, ctx: ToolContext): voi
       targetPlatform: z.string().optional(),
     },
     async (args) => {
-      const blocked = await guard(store, "create_project");
+      const blocked = await guard(ctx, "create_project");
       if (blocked) return blocked;
       const deps = {
         runner: new NodeProcessRunner(),
@@ -115,11 +101,16 @@ export function registerLifecycleTools(server: McpServer, ctx: ToolContext): voi
     "Boot the editor (visible by default; headless:true for CI) and confirm the bridge handshake. Legal in 'project_created'. → launched.",
     { projectPath: z.string(), headless: z.boolean().optional() },
     async (args) => {
-      const blocked = await guard(store, "launch");
+      const blocked = await guard(ctx, "launch");
       if (blocked) return blocked;
       return runBody(store, "launch", async () => {
         const result = await launch(
-          { startEditor: startEditorProcess, connectBridge, wsUrl: bridgeWsUrl() },
+          {
+            prepareProject: clearStaleEditor,
+            startEditor: startEditorProcess,
+            connectBridge,
+            wsUrl: bridgeWsUrl(),
+          },
           store,
           args,
           resolveProjectRoot(),
@@ -135,7 +126,7 @@ export function registerLifecycleTools(server: McpServer, ctx: ToolContext): voi
     "Cleanly stop the editor and close the bridge connection. Legal in 'launched'. → project_created.",
     {},
     async () => {
-      const blocked = await guard(store, "shutdown");
+      const blocked = await guard(ctx, "shutdown");
       if (blocked) return blocked;
       return runBody(store, "shutdown", async () => {
         const result = await shutdown(session.current, store);
