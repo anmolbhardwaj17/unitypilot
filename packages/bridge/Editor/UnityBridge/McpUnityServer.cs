@@ -636,6 +636,10 @@ namespace McpUnity.Unity
             EditorStatusTool editorStatusTool = new EditorStatusTool();
             _tools.Add(editorStatusTool.Name, editorStatusTool);
 
+            // FORK (Phase 6b): the visual feedback channel — render a camera to a PNG
+            ScreenshotTool screenshotTool = new ScreenshotTool();
+            _tools.Add(screenshotTool.Name, screenshotTool);
+
             // Register DeleteSceneTool
             DeleteSceneTool deleteSceneTool = new DeleteSceneTool();
             _tools.Add(deleteSceneTool.Name, deleteSceneTool);

@@ -307,9 +307,10 @@ Split at the recompile/domain-reload boundary (discovered in the Phase 5 spike, 
 - `script_write` now surfaces **compiler errors**. Signal split discovered in the bridge: a *successful* compile triggers a domain reload that drops the WS (existing reconnect path); a *failed* compile does **not** reload, so the `recompile_scripts` response comes back with `CompilationPipeline` messages (`message`/`file`/`line`). `script_write` captures those and returns `{ error: "compile_failed", compileErrors: [...] }` — distinct from `editor_not_processing`. No new C# (the fork's `recompile_scripts` already collects compiler messages).
 - **Deliverable:** ✅ agent recovers from a self-introduced error without human help — write broken script → `compile_failed` (exact CS error + file/line) → `read_console` → write fix → `recompiled:true` + attached. **Verified 3/3 interactive on a real Mac.**
 
-**Phase 6b — `screenshot` / `camera_view`** *(next)*
-- The visual feedback channel — net-new C# (render a camera/scene to PNG → base64 → MCP image content); not present in the fork. Interactive-vs-headless render differences to handle.
-- **Deliverable:** agent returns a screenshot the human reviews.
+**Phase 6b — `screenshot` / `camera_view`** ✅ *(done)*
+- The visual feedback channel. New C# `ScreenshotTool` renders a camera to a `RenderTexture` → `EncodeToPNG` → base64. Camera resolution: named camera (`camera` param = `camera_view`) → `Camera.main` → any camera → the SceneView camera (so an empty scene still yields the editor's-eye view). Params: `width`/`height` (default 1280×720), `mode` (`game`|`scene`). Detects `-nographics` (`GraphicsDeviceType.Null`) and returns `screenshot_unavailable_headless` — rendering needs a GPU, so this is interactive-only (consistent with the interactive default).
+- Orchestrator `screenshot` tool: `ToolResult` extended with an **image** content item; returns the PNG inline (so the agent sees it) **and** saves it to `<project>/.unity-mcp/screenshots/` (so the human has a file). Foregrounds Unity first (the `focusUnity` opt-out applies) so the render dispatches.
+- **Deliverable:** ✅ agent captures the view — verified 3/3 interactive on a real Mac (640×360 and default), valid PNG on disk + inline image, real render (skybox + the created cube).
 
 **Phase 6c — `run_tests`** *(after 6b)*
 - Proxy the fork's `RunTestsTool` (Unity Test Runner). It's an **async** tool — works on the interactive path; the headless sync pump rejects async tools (same known gap as recompile-with-logs headless), so headless `run_tests` is deferred.

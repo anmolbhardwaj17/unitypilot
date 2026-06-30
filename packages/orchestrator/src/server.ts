@@ -6,6 +6,7 @@ import { registerBridgeTools } from "./tools/bridge-tools.js";
 import { createToolContext } from "./tools/context.js";
 import { registerImportAssets } from "./tools/import-assets.js";
 import { registerLifecycleTools } from "./tools/lifecycle.js";
+import { registerScreenshot } from "./tools/screenshot.js";
 import { registerScriptWrite } from "./tools/script-write.js";
 import { getStatus } from "./tools/status.js";
 
@@ -45,6 +46,7 @@ export function createServer(): McpServer {
   registerBridgeTools(server, ctx);
   registerImportAssets(server, ctx);
   registerScriptWrite(server, ctx);
+  registerScreenshot(server, ctx);
 
   return server;
 }
