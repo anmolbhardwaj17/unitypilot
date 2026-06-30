@@ -90,7 +90,7 @@ if (cv && cv.getContext) {
   window.addEventListener("resize", resize);
 
   // points on the 6 cube faces
-  const P = [], M = 7;
+  const P = [], M = 5;
   for (let axis = 0; axis < 3; axis++) {
     for (let s = -1; s <= 1; s += 2) {
       for (let i = 0; i < M; i++) for (let j = 0; j < M; j++) {
@@ -101,7 +101,7 @@ if (cv && cv.getContext) {
       }
     }
   }
-  const COLS = 34, ROWS = Math.ceil(P.length / COLS);
+  const COLS = 30, ROWS = Math.ceil(P.length / COLS);
 
   let ang = 0, disp = 0, vel = 0, target = 0, lastInput = -9999;
 
