@@ -26,6 +26,56 @@ const RECONNECT_TIMEOUT_MS = 120_000;
 
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
+/** Poll the editor until it's done compiling/updating after a reload (BACKLOG P2). */
+async function waitForEditorReady(ctx: ToolContext, timeoutMs = 30_000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const live = ctx.session.current?.client;
+    if (!live) return;
+    try {
+      const r = (await ctx.bridgeMutex.run(() => live.request("editor_status", {}, 5_000))) as {
+        ready?: boolean;
+      };
+      if (r?.ready) return;
+    } catch {
+      // a transient reload can drop this; keep polling
+    }
+    await sleep(1_000);
+  }
+}
+
+/** Attach a component, then verify via get_gameobject; retry (the type may not resolve instantly). */
+async function attachWithVerify(
+  ctx: ToolContext,
+  objectPath: string,
+  componentName: string,
+  attempts = 4,
+): Promise<{ attached: boolean; error?: string }> {
+  for (let i = 0; i < attempts; i++) {
+    const live = ctx.session.current?.client;
+    if (!live) return { attached: false, error: "no bridge connection" };
+    try {
+      await ctx.bridgeMutex.run(() =>
+        live.request("update_component", { objectPath, componentName, componentData: {} }, 15_000),
+      );
+    } catch (err) {
+      return { attached: false, error: err instanceof Error ? err.message : String(err) };
+    }
+    try {
+      // get_gameobject takes `idOrName`; for a root object the path is its name.
+      const go = (await ctx.bridgeMutex.run(() =>
+        live.request("get_gameobject", { idOrName: objectPath }, 10_000),
+      )) as { gameObject?: { components?: { type?: string }[] } };
+      const comps = go.gameObject?.components ?? [];
+      if (comps.some((c) => c.type === componentName)) return { attached: true };
+    } catch {
+      // verify read failed; retry
+    }
+    await sleep(1_000);
+  }
+  return { attached: false, error: "component not present after attach attempts" };
+}
+
 /** Wait for the bridge to come back after a domain reload; swap in the new client. */
 async function reconnectAfterReload(ctx: ToolContext): Promise<boolean> {
   try {
@@ -95,7 +145,14 @@ export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
         );
       }
 
-      // 2. Import the new file (refresh_assets), then force compilation (recompile_scripts) —
+      // 2. Save the scene first so objects keep a stable identity across the domain reload.
+      try {
+        await ctx.bridgeMutex.run(() => client.request("save_scene", {}, 15_000));
+      } catch {
+        // best-effort
+      }
+
+      // 3. Import the new file (refresh_assets), then force compilation (recompile_scripts) —
       //    importing alone defers compilation when the editor is driven, so the reload never
       //    fires. Both are best-effort: the reload drops this connection mid-flight.
       try {
@@ -120,7 +177,8 @@ export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
         await sleep(500);
       }
 
-      // 4. Reconnect across the reload if it happened.
+      // 4. Reconnect across the reload if it happened, then wait for the editor to finish
+      //    compiling/updating so the new type is resolvable.
       if (dropped) {
         const ok = await reconnectAfterReload(ctx);
         if (!ok) {
@@ -133,31 +191,16 @@ export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
             true,
           );
         }
+        await waitForEditorReady(ctx);
       }
 
-      // 5. Optionally attach the (now-compiled) script as a component.
+      // 5. Optionally attach the (now-compiled) script as a component, verifying it stuck.
       let attached = false;
       let attachError: string | undefined;
       if (args.attachToPath && args.componentName) {
-        const live = ctx.session.current?.client;
-        if (live) {
-          try {
-            await ctx.bridgeMutex.run(() =>
-              live.request(
-                "update_component",
-                {
-                  objectPath: args.attachToPath,
-                  componentName: args.componentName,
-                  componentData: {},
-                },
-                15_000,
-              ),
-            );
-            attached = true;
-          } catch (err) {
-            attachError = err instanceof Error ? err.message : String(err);
-          }
-        }
+        const result = await attachWithVerify(ctx, args.attachToPath, args.componentName);
+        attached = result.attached;
+        attachError = result.error;
       }
 
       return jsonResult(

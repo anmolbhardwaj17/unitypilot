@@ -86,9 +86,16 @@ const PROXY_TOOLS: ProxyTool[] = [
   {
     name: "gameobject_get",
     description:
-      "Get a GameObject's details including its components, by path or instanceId. Legal only in 'launched'.",
-    schema: { objectPath: z.string().optional(), instanceId: z.number().optional() },
+      "Get a GameObject's details including its components, by name or instance id. Legal only in 'launched'.",
+    schema: { idOrName: z.union([z.string(), z.number()]) },
     method: "get_gameobject",
+  },
+  {
+    name: "editor_status",
+    description:
+      "Report whether the editor is compiling/updating (post-reload readiness). Legal only in 'launched'.",
+    schema: {},
+    method: "editor_status",
   },
   // NOTE: execute_menu_item is intentionally NOT proxied — GameObject-creation menu items
   // block the main thread in batch mode and wedge the bridge. Primitives go through

@@ -608,6 +608,10 @@ namespace McpUnity.Unity
             RefreshAssetsTool refreshAssetsTool = new RefreshAssetsTool();
             _tools.Add(refreshAssetsTool.Name, refreshAssetsTool);
 
+            // FORK (Phase 5b): post-reload readiness probe for attaching compiled scripts
+            EditorStatusTool editorStatusTool = new EditorStatusTool();
+            _tools.Add(editorStatusTool.Name, editorStatusTool);
+
             // Register DeleteSceneTool
             DeleteSceneTool deleteSceneTool = new DeleteSceneTool();
             _tools.Add(deleteSceneTool.Name, deleteSceneTool);
