@@ -22,7 +22,11 @@ export function startEditorProcess(
   if (!graphics) args.push("-nographics");
   args.push("-logFile", "-");
 
-  const child = spawn(editorPath, args);
+  // UNITY_MCP_HEADLESS opts the (forked) bridge into running its WS server in batch
+  // mode — upstream disables it there for CI safety. See packages/bridge/FORK.md.
+  const child = spawn(editorPath, args, {
+    env: { ...process.env, UNITY_MCP_HEADLESS: "1" },
+  });
   let log = "";
   let alive = true;
   const append = (chunk: Buffer) => {

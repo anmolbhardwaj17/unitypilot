@@ -63,14 +63,23 @@ namespace McpUnity.Unity
         }
 
         /// <summary>
-        /// Singleton instance accessor. Returns null in batch mode.
+        /// FORK (Phase 4, unity-mcp-orchestrator): UNITY_MCP_HEADLESS=1 opts a batch-mode
+        /// session into running the server. Upstream disables the server in batch mode for
+        /// CI safety; we preserve that default and only enable it when the orchestrator,
+        /// which launches the editor headless, sets this env var.
+        /// </summary>
+        internal static bool AllowHeadless =>
+            System.Environment.GetEnvironmentVariable("UNITY_MCP_HEADLESS") == "1";
+
+        /// <summary>
+        /// Singleton instance accessor. Returns null in batch mode unless headless is allowed.
         /// </summary>
         public static McpUnityServer Instance
         {
             get
             {
-                // Don't create instance in batch mode to avoid hanging builds
-                if (Application.isBatchMode)
+                // Don't create instance in batch mode to avoid hanging builds (unless opted in)
+                if (Application.isBatchMode && !AllowHeadless)
                 {
                     return null;
                 }
@@ -230,8 +239,9 @@ namespace McpUnity.Unity
         private McpUnityServer()
         {
             // Skip all initialization in batch mode (Unity Cloud Build, CI, headless builds)
-            // The npm install/build commands can hang indefinitely without node.js available
-            if (Application.isBatchMode)
+            // The npm install/build commands can hang indefinitely without node.js available.
+            // FORK: unless the orchestrator opted this headless session in (UNITY_MCP_HEADLESS=1).
+            if (Application.isBatchMode && !AllowHeadless)
             {
                 McpLogger.LogInfo("MCP Unity server disabled: Running in batch mode (Unity Cloud Build or CI)");
                 return;
@@ -249,7 +259,12 @@ namespace McpUnity.Unity
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 
-            InstallServer();
+            // FORK: the orchestrator is the MCP client, so the upstream Node server and its
+            // npm install/build are unnecessary headless and could hang the session.
+            if (!Application.isBatchMode)
+            {
+                InstallServer();
+            }
             InitializeServices();
             RegisterResources();
             RegisterTools();
@@ -257,7 +272,16 @@ namespace McpUnity.Unity
             // Initial start if auto-start is enabled and not recovering from a reload where it was off
             if (McpUnitySettings.Instance.AutoStartServer)
             {
-                ScheduleStartServer(requireAutoStart: true, reason: "auto-start");
+                if (Application.isBatchMode)
+                {
+                    // FORK: EditorApplication.delayCall/update timing is unreliable in batch
+                    // mode, so start the server directly rather than via the scheduler.
+                    StartServer();
+                }
+                else
+                {
+                    ScheduleStartServer(requireAutoStart: true, reason: "auto-start");
+                }
             }
         }
 
@@ -394,7 +418,7 @@ namespace McpUnity.Unity
             _delayedStartAttempt = 0;
             _delayedStartEarliestTime = 0;
 
-            if (Application.isBatchMode || _instance != this)
+            if ((Application.isBatchMode && !AllowHeadless) || _instance != this)
             {
                 return;
             }
@@ -649,8 +673,10 @@ namespace McpUnity.Unity
         private static void AfterReload()
         {
             // Skip initialization in batch mode (Unity Cloud Build, CI, headless builds)
-            // This prevents npm commands from hanging the build process
-            if (Application.isBatchMode)
+            // This prevents npm commands from hanging the build process.
+            // FORK: this [DidReloadScripts] hook is the headless bootstrap — it must run
+            // (and create Instance) when the orchestrator opts in via UNITY_MCP_HEADLESS=1.
+            if (Application.isBatchMode && !AllowHeadless)
             {
                 return;
             }

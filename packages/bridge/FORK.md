@@ -23,5 +23,23 @@ unmodified for attribution.
 
 ## Local modifications
 
-None yet. If/when we modify the C# (e.g. to guarantee headless auto-start), record
-the changes here so the delta from upstream stays auditable.
+### Headless auto-start (Phase 4) — `Editor/UnityBridge/McpUnityServer.cs`
+
+Upstream **deliberately disables the WebSocket server in batch mode** (CI safety, and
+its `InstallServer()` runs `npm install/build` on the Node server, which can hang
+headless). Our product premise is the opposite — the editor always runs headless. So
+we gate the batch-mode guards behind an explicit opt-in:
+
+- Added `internal static bool AllowHeadless` → true when env `UNITY_MCP_HEADLESS=1`.
+  The orchestrator sets this only on its own `launch` (see `launch-node.ts`), so
+  upstream's CI-safe default is preserved for everyone else.
+- `Instance` getter, the private constructor, `RunScheduledStart`, and the
+  `[DidReloadScripts] AfterReload` bootstrap now treat batch mode as allowed when
+  `AllowHeadless`.
+- In headless we **skip `InstallServer()`** entirely (the orchestrator is the MCP
+  client; the upstream Node server is unused) and **start the server directly** in the
+  constructor rather than via `EditorApplication.delayCall`/`update`, whose timing is
+  unreliable in batch mode.
+
+Not yet changed: the quit/assembly-reload event handlers still no-op in batch mode.
+Reload-resilience headless (server restart after a recompile) is a Phase 5+ concern.
