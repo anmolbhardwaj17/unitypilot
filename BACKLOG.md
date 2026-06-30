@@ -55,7 +55,17 @@ maybe a small C# `editor_status` tool in the bridge.
 
 ---
 
-## P1 — `script_write` reliability: ROOT CAUSE = a backgrounded editor throttles
+## ✅ P1 — `script_write` reliability: RESOLVED (auto-focus + retries + focus message)
+**Fixed:** `script_write`/`import_assets` now call `focusEditor()` (macOS `osascript ... activate`)
+so Unity is foregrounded for the compile/import — defeating the background-throttle stall. Plus:
+re-open the saved scene after the reload, retry the compile-trigger up to 4×, and attach with a
+retry loop (the new MonoBehaviour type can be unresolvable for a moment right after the reload).
+If Unity *still* doesn't recompile, `script_write` returns a clear `editor_not_processing` message
+telling the user to click the Unity window. **Verified: 3/3 interactive runs passed** (write →
+compile → reload → reconnect → attach, cube gets the component). Headless was already reliable.
+Residual: focus-stealing during a compile is a UX trade-off; could add a "no-steal" option later.
+
+## (history) ROOT CAUSE = a backgrounded editor throttles
 **Root cause (found):** Unity **throttles/pauses an editor's update loop when it's not the
 foreground app**. The bridge dispatches messages via coroutines/`delayCall` (interactive) which
 need that loop, so when Unity is backgrounded (e.g. while you're typing in Claude Code) asset

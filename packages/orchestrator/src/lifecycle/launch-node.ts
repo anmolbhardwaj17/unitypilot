@@ -19,6 +19,18 @@ const KILL_GRACE_MS = 3_000;
  * open the project. Kill any lingering editor process for this exact project path, then
  * remove the lockfile.
  */
+/**
+ * Bring the Unity editor to the foreground (BACKLOG P1). Unity throttles a backgrounded
+ * editor's update loop, which stalls asset import/compile during `script_write`. Activating
+ * it for the compile window keeps it processing at full rate. Best-effort: `activate` needs
+ * no accessibility permission, and failures are ignored.
+ */
+export function focusEditor(): Promise<void> {
+  return new Promise((resolve) => {
+    execFile("osascript", ["-e", 'tell application "Unity" to activate'], () => resolve());
+  });
+}
+
 export async function clearStaleEditor(projectPath: string): Promise<void> {
   const lockfile = join(projectPath, "Temp", "UnityLockfile");
   try {

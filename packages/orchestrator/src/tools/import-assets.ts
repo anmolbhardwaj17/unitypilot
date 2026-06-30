@@ -13,6 +13,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { resolveProjectRoot } from "../config.js";
 import { IllegalToolError, assertBridgeToolLegal } from "../fsm/machine.js";
+import { focusEditor } from "../lifecycle/launch-node.js";
 import { getEffectiveState } from "../state/reconcile.js";
 import { callBridge } from "./bridge-tools.js";
 import type { ToolContext } from "./context.js";
@@ -55,7 +56,9 @@ export function registerImportAssets(server: McpServer, ctx: ToolContext): void 
         );
       }
 
-      // Unity-side import via the forked refresh_assets bridge tool.
+      // Foreground Unity (it throttles a backgrounded editor) so the import actually runs,
+      // then do the Unity-side import via the forked refresh_assets bridge tool.
+      await focusEditor();
       const refresh = await callBridge(ctx, "import_assets", "refresh_assets", {});
       if (refresh.isError) return refresh;
 

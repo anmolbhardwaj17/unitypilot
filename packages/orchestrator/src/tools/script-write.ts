@@ -16,7 +16,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { resolveProjectRoot } from "../config.js";
 import { IllegalToolError, assertBridgeToolLegal } from "../fsm/machine.js";
-import { connectBridge } from "../lifecycle/launch-node.js";
+import { connectBridge, focusEditor } from "../lifecycle/launch-node.js";
 import { getEffectiveState } from "../state/reconcile.js";
 import type { ToolContext } from "./context.js";
 import { illegalToolResult, jsonResult } from "./result.js";
@@ -51,6 +51,7 @@ async function attachWithVerify(
   componentName: string,
   attempts = 4,
 ): Promise<{ attached: boolean; error?: string }> {
+  let lastError: string | undefined;
   for (let i = 0; i < attempts; i++) {
     const live = ctx.session.current?.client;
     if (!live) return { attached: false, error: "no bridge connection" };
@@ -59,7 +60,10 @@ async function attachWithVerify(
         live.request("update_component", { objectPath, componentName, componentData: {} }, 15_000),
       );
     } catch (err) {
-      return { attached: false, error: err instanceof Error ? err.message : String(err) };
+      // The object may not be resolvable yet right after a reload — keep retrying.
+      lastError = err instanceof Error ? err.message : String(err);
+      await sleep(1_500);
+      continue;
     }
     try {
       // get_gameobject takes `idOrName`; for a root object the path is its name.
@@ -73,7 +77,7 @@ async function attachWithVerify(
     }
     await sleep(1_000);
   }
-  return { attached: false, error: "component not present after attach attempts" };
+  return { attached: false, error: lastError ?? "component not present after attach attempts" };
 }
 
 /** Wait for the bridge to come back after a domain reload; swap in the new client. */
@@ -191,6 +195,9 @@ export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
           dropped = true;
           break;
         }
+        // Foreground Unity so its (otherwise throttled-when-backgrounded) loop actually
+        // imports + compiles. See focusEditor / BACKLOG P1.
+        await focusEditor();
         try {
           await ctx.bridgeMutex.run(() => live.request("refresh_assets", {}, 15_000));
         } catch {
@@ -211,9 +218,31 @@ export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
         }
       }
 
+      // If Unity never recompiled, it almost always means the editor window wasn't focused
+      // (Unity pauses a backgrounded editor's loop). Tell the user exactly what to do.
+      if (!dropped) {
+        return jsonResult(
+          {
+            error: "editor_not_processing",
+            tool: "script_write",
+            written: rel,
+            recompiled: false,
+            message:
+              "Wrote the script, but Unity didn't recompile it. Unity pauses a backgrounded " +
+              "editor, so this usually means the Unity Editor window isn't in focus. Click the " +
+              "Unity Editor window to bring it to the front, then run script_write again. " +
+              "(UnityPilot tries to focus Unity automatically; if this keeps happening, focus it " +
+              "manually, or launch headless.)",
+          },
+          true,
+        );
+      }
+
       // 4. Reconnect across the reload if it happened, then wait for the editor to finish
       //    compiling/updating so the new type is resolvable.
       if (dropped) {
+        // Keep Unity foreground through the post-reload settle so it finishes processing.
+        await focusEditor();
         const ok = await reconnectAfterReload(ctx);
         if (!ok) {
           return jsonResult(
