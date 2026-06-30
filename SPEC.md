@@ -288,14 +288,15 @@ Each phase ends with a concrete, testable deliverable. **Do not start a phase un
 
 Split at the recompile/domain-reload boundary (discovered in the Phase 5 spike, §4b): the no-compile tools are straightforward; anything that compiles C# tears down and restarts the bridge WS, which is materially harder and is isolated into 5b.
 
-**Phase 5a — proxy core + no-recompile tools**
+**Phase 5a — proxy core + no-reload tools** ✅ *(done)*
 - A persistent `BridgeClient` (request/response over the launched WS), established at `launch` and held in the session. Enforce `launched`-only and the `busy` in-memory serialization guard (§4b).
-- Proxy `scene_create`/`scene_save`, `gameobject_create` (+ cube via `execute_menu_item`), `component_add`/`component_configure`, and `import_assets` (hybrid: orchestrator copies into `Assets/`, forked `refresh_assets` imports). None of these trigger a domain reload.
-- **Deliverable:** headless "create a scene → add a cube → import an asset → save scene" end to end on a Mac.
+- Proxy `scene_create`/`scene_save`/`scene_get_info`, `gameobject_create_primitive` (cube via the forked `create_primitive` C# tool — the menu-item path wedges headless), `gameobject_update`, `component_add`. None trigger a domain reload.
+- Two headless requirements discovered and solved: a blocking main-thread **message pump** in the bridge (the editor update loop is idle in `-batchmode`, so `delayCall`/coroutine dispatch never fire — only the first command processed), and switching the orchestrator's WS client to the **`ws` package** (Node's built-in WebSocket mis-reads websocket-sharp frames after the first). See `packages/bridge/FORK.md`.
+- **Deliverable:** headless "create a scene → add a cube → save scene → get scene info" end to end on a Mac. ✅
 
-**Phase 5b — scripts + domain-reload resilience**
-- `BridgeClient` auto-reconnect across the domain reload a recompile causes. `script_write` (orchestrator writes `.cs` → `recompile_scripts`) and attach via `update_component`.
-- **Deliverable:** headless "write a script, attach it to a GameObject, recompile clean." (Dovetails with Phase 6's console/error→fix loop.)
+**Phase 5b — AssetDatabase ops + domain-reload resilience**
+- `import_assets` (hybrid: orchestrator copies into `Assets/`, forked `refresh_assets` imports) and `script_write` (orchestrator writes `.cs` → `recompile_scripts`, attach via `update_component`) BOTH go through `AssetDatabase` operations that can trigger a Unity **domain reload**, which tears down and restarts the bridge + headless pump. So both need `BridgeClient` auto-reconnect (and pump restart) across the reload — the core 5b problem.
+- **Deliverable:** headless "import an asset" and "write a script, attach it, recompile clean," surviving the reload. (Dovetails with Phase 6's console/error→fix loop.)
 
 ### Phase 6 — Feedback loop
 - `read_console`, `run_tests`, and `screenshot` / `camera_view`.

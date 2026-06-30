@@ -18,12 +18,14 @@ namespace McpUnity.Tools
 
         public override JObject Execute(JObject parameters)
         {
-            AssetDatabase.Refresh();
+            // ForceSynchronousImport: in the headless pump the editor loop is idle, so a plain
+            // Refresh() queues an async import that never completes. Force it to import inline.
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
             return new JObject
             {
                 ["success"] = true,
                 ["type"] = "text",
-                ["message"] = "AssetDatabase refreshed"
+                ["message"] = "AssetDatabase refreshed (synchronous)"
             };
         }
     }

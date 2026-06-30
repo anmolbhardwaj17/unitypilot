@@ -37,6 +37,9 @@ export function createServer(): McpServer {
 
   registerLifecycleTools(server, ctx);
   registerBridgeTools(server, ctx);
+  // NOTE: import_assets is implemented (tools/import-assets.ts) but intentionally NOT
+  // registered yet — its bridge-side refresh_assets can trigger a domain reload that drops
+  // the headless pump, so it ships with Phase 5b's reload-resilience work.
 
   return server;
 }
