@@ -92,15 +92,33 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.02em; line-height: 
 .hero p.lead { font-size: clamp(14px, 1.4vw, 16px); color: var(--ink-soft); max-width: 48ch; margin: 22px 0 0; }
 
 .cta-row { display: flex; flex-wrap: wrap; gap: 14px; margin: 32px 0 0; align-items: center; }
-/* chunky tactile keycap buttons (Teenage Engineering style) */
-.btn { display: inline-flex; align-items: center; gap: 9px; padding: 14px 24px; border-radius: 14px; font: 600 14.5px var(--font); cursor: pointer; border: 0; transition: transform .06s ease, box-shadow .06s ease; }
-.btn:active { transform: translateY(4px); }
-.btn-primary { background: linear-gradient(#d4ff5f, #b3e93a); color: #0e1206;
-  box-shadow: 0 5px 0 #6f9416, 0 9px 16px rgba(150,220,40,.22), inset 0 1px 0 rgba(255,255,255,.45); }
-.btn-primary:active { box-shadow: 0 1px 0 #6f9416, inset 0 1px 0 rgba(255,255,255,.35); }
-.btn-ghost { background: linear-gradient(#242424, #171717); color: var(--ink);
-  box-shadow: 0 5px 0 #050505, 0 9px 16px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.10); }
-.btn-ghost:active { box-shadow: 0 1px 0 #050505, inset 0 1px 0 rgba(255,255,255,.10); }
+/* glossy pillowy keycap buttons (Teenage Engineering style) */
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 18px 40px; border-radius: 22px;
+  font: 600 16px var(--font); cursor: pointer; border: 0; color: #15200a;
+  transition: transform .07s ease, box-shadow .07s ease; }
+.btn-primary {
+  background:
+    radial-gradient(125% 85% at 50% 16%, rgba(255,255,255,.6), rgba(255,255,255,0) 56%),
+    linear-gradient(180deg, #d6ff66 0%, #c1f24a 46%, #aee23a 100%);
+  box-shadow:
+    inset 0 2px 1px rgba(255,255,255,.85),
+    inset 0 -7px 11px rgba(110,150,20,.45),
+    0 8px 0 #84ad26, 0 11px 0 #6f9119,
+    0 18px 26px rgba(150,220,40,.20), 0 16px 24px rgba(0,0,0,.45); }
+.btn-primary:active { transform: translateY(8px);
+  box-shadow: inset 0 2px 1px rgba(255,255,255,.85), inset 0 -7px 11px rgba(110,150,20,.45),
+    0 2px 0 #6f9119, 0 6px 12px rgba(0,0,0,.45); }
+.btn-ghost { color: var(--ink);
+  background:
+    radial-gradient(125% 85% at 50% 16%, rgba(255,255,255,.12), rgba(255,255,255,0) 56%),
+    linear-gradient(180deg, #313131 0%, #232323 46%, #1a1a1a 100%);
+  box-shadow:
+    inset 0 2px 1px rgba(255,255,255,.18),
+    inset 0 -7px 11px rgba(0,0,0,.4),
+    0 8px 0 #0d0d0d, 0 11px 0 #070707,
+    0 18px 26px rgba(0,0,0,.5); }
+.btn-ghost:active { transform: translateY(8px);
+  box-shadow: inset 0 2px 1px rgba(255,255,255,.18), 0 2px 0 #070707, 0 6px 12px rgba(0,0,0,.5); }
 
 .install { margin: 26px 0 0; display: inline-flex; align-items: center; gap: 13px; background: #000; color: var(--ink); border: 1px solid var(--line-2); border-radius: var(--r-sm); padding: 12px 13px 12px 16px; font-family: var(--mono); font-size: 14px; max-width: 100%; overflow: auto; }
 .install .prompt { color: var(--accent); }
