@@ -55,14 +55,31 @@ maybe a small C# `editor_status` tool in the bridge.
 
 ---
 
-## P3 — Headless reload resilience
-**What:** In headless (`-batchmode`) mode, the `RunHeadless` pump thread dies with the AppDomain
-on a domain reload, so import/scripts don't survive a reload there.
+## P1 — `script_write` reconnect-across-reload reliability (NEW, found while fixing P2)
+**What:** `script_write` writes+compiles fine, but the orchestrator's reconnect after the domain
+reload is **flaky** — sometimes it attaches cleanly (verified once), sometimes the bridge doesn't
+come back within the reconnect window (`reconnect_timeout`), sometimes the recompile doesn't fire
+on the first launch after a bridge C# change.
+**Why it matters:** writing scripts is a core capability; it needs to be reliable, not 1-in-3.
+**Likely causes to investigate:** the bridge sometimes does a *double* domain reload; port 8090 in
+TIME_WAIT briefly after the server restarts; `connectBridge`'s 3s per-candidate timeout too short;
+no detection of "compile finished" before reconnecting (we reconnect on first WS drop). Also a
+persistent "first launch after a bridge C# edit is flaky" pattern (the bridge recompiles mid-launch).
+**Fix:** harden `reconnectAfterReload` — wait for compile-finished (`editor_status.ready`) AND a
+stable connection (N consecutive good `get_scene_info`), tolerate multiple reloads, longer/﻿retried
+connect. **Effort:** ~1 focused session of real-Unity iteration. **Files:** `tools/script-write.ts`.
+
+## P3 — Headless reload resilience (KNOWN LIMITATION, not a quick fix)
+**What:** In headless (`-batchmode`) mode, the `RunHeadless` pump **blocks the main thread**, and a
+Unity domain reload *needs* that main thread — so a recompile can't reload while the pump runs
+(deadlock). Attempting to restart the pump from `[DidReloadScripts]` instead **broke headless
+initial load** (the pump blocks init). Verified: import/scripts don't survive a reload headless.
 **Why it's P3:** Interactive (visible editor) is the default and the maintainer's workflow, where
-this is handled natively. Headless only matters for CI/automation later.
-**Fix:** Re-invoke the pump after reload (the bridge's `[DidReloadScripts]` hook already runs in
-our headless patch — have it restart the pump), and have the orchestrator reconnect (the 5b
-reconnect logic already exists). **Effort:** medium. **Files:** `packages/bridge` + launch path.
+reloads are handled natively. Headless only matters for CI/automation later.
+**Real fix (not small):** redesign the headless pump to be **cooperative/non-blocking** — e.g. a
+short-lived pump that yields control back to Unity so reloads can happen, then is re-entered. This
+is an architectural change, not a patch. Until then, **headless = no recompile/import** (scenes,
+objects, components still work headless). **Files:** `packages/bridge` pump + launch path.
 
 ---
 

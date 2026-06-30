@@ -315,6 +315,10 @@ namespace McpUnity.Unity
             {
                 return;
             }
+            if (_headlessPumpRunning)
+            {
+                return; // already pumping — avoid a second nested loop
+            }
             var _ = Instance; // ensure the server is constructed and started
             _headlessPumpRunning = true;
             EditorApplication.quitting += StopHeadlessPump;
@@ -746,6 +750,13 @@ namespace McpUnity.Unity
 
             // Ensure Instance is created and hooks are set up after initial domain load
             var currentInstance = Instance;
+
+            // NOTE (Phase 5b/P3): headless reload resilience is NOT solved here. Restarting the
+            // RunHeadless pump from this hook blocks the editor's initial-load init (the pump
+            // holds the main thread), and more fundamentally a domain reload needs the main
+            // thread that the blocking pump occupies. Surviving a reload headless requires a
+            // cooperative (non-blocking) pump redesign — tracked in BACKLOG.md as a known
+            // limitation. Interactive mode (the default) handles reloads natively.
         }
 
         /// <summary>
