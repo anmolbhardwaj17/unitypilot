@@ -312,9 +312,10 @@ Split at the recompile/domain-reload boundary (discovered in the Phase 5 spike, 
 - Orchestrator `screenshot` tool: `ToolResult` extended with an **image** content item; returns the PNG inline (so the agent sees it) **and** saves it to `<project>/.unity-mcp/screenshots/` (so the human has a file). Foregrounds Unity first (the `focusUnity` opt-out applies) so the render dispatches.
 - **Deliverable:** ✅ agent captures the view — verified 3/3 interactive on a real Mac (640×360 and default), valid PNG on disk + inline image, real render (skybox + the created cube).
 
-**Phase 6c — `run_tests`** *(after 6b)*
-- Proxy the fork's `RunTestsTool` (Unity Test Runner). It's an **async** tool — works on the interactive path; the headless sync pump rejects async tools (same known gap as recompile-with-logs headless), so headless `run_tests` is deferred.
-- **Deliverable:** agent invokes the Test Runner and gets pass/fail + failures back.
+**Phase 6c — `run_tests`** ✅ *(done)*
+- Proxies the fork's `RunTestsTool` (already registered with `TestRunnerService`) — no new C#. Params: `testMode` (`EditMode`|`PlayMode`), `testFilter`, `returnOnlyFailures`, `returnWithLogs`. It's an **async** tool — works on the interactive path; the headless sync pump rejects async tools (same known gap as recompile-with-logs headless), so headless `run_tests` is deferred. Added a per-tool `timeoutMs` to the proxy (180s) since the Test Runner can run long.
+- Result note: `passCount`/`failCount` are the authoritative leaf tallies; `testCount` counts result-tree nodes (assembly/namespace/class + leaves), so don't assert on it.
+- **Deliverable:** ✅ agent invokes the Test Runner and gets pass/fail + failures back — verified interactive on a real Mac with a staged EditMode assembly (1 pass + 1 fail → `passCount:1, failCount:1`).
 
 ### Phase 7 — Packaging + public release
 - `npm publish` the orchestrator. README with the one-line install, a **macOS-only v1** banner, the §8 scope statement, and upstream bridge attribution.

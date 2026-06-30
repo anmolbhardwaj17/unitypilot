@@ -21,6 +21,8 @@ interface ProxyTool {
   method: string;
   /** Transform validated MCP args into the bridge's param object (identity by default). */
   mapParams?: (args: Record<string, unknown>) => object;
+  /** Override the bridge request timeout (default 30s) — e.g. the Test Runner can run long. */
+  timeoutMs?: number;
 }
 
 const FREEFORM = z.record(z.string(), z.unknown());
@@ -110,6 +112,21 @@ const PROXY_TOOLS: ProxyTool[] = [
     },
     method: "get_console_logs",
   },
+  {
+    name: "run_tests",
+    description:
+      "Run Unity Test Runner tests and return pass/fail counts + failures (Phase 6c). " +
+      "testMode 'EditMode' (default) or 'PlayMode'; optional testFilter (name/namespace). " +
+      "Interactive only (async; the headless sync pump can't run it). Legal only in 'launched'.",
+    schema: {
+      testMode: z.enum(["EditMode", "PlayMode"]).optional(),
+      testFilter: z.string().optional(),
+      returnOnlyFailures: z.boolean().optional(),
+      returnWithLogs: z.boolean().optional(),
+    },
+    method: "run_tests",
+    timeoutMs: 180_000,
+  },
   // NOTE: execute_menu_item is intentionally NOT proxied — GameObject-creation menu items
   // block the main thread in batch mode and wedge the bridge. Primitives go through
   // create_primitive instead.
@@ -121,6 +138,7 @@ export async function callBridge(
   toolName: string,
   method: string,
   params: object,
+  timeoutMs?: number,
 ): Promise<ToolResult> {
   const state = await getEffectiveState(ctx);
   try {
@@ -143,7 +161,7 @@ export async function callBridge(
   }
 
   try {
-    const result = await ctx.bridgeMutex.run(() => client.request(method, params));
+    const result = await ctx.bridgeMutex.run(() => client.request(method, params, timeoutMs));
     return jsonResult({ ok: true, tool: toolName, result }, false);
   } catch (err) {
     return jsonResult(
@@ -161,7 +179,7 @@ export function registerBridgeTools(server: McpServer, ctx: ToolContext): void {
   for (const def of PROXY_TOOLS) {
     server.tool(def.name, def.description, def.schema, async (args: Record<string, unknown>) => {
       const params = def.mapParams ? def.mapParams(args) : args;
-      return callBridge(ctx, def.name, def.method, params);
+      return callBridge(ctx, def.name, def.method, params, def.timeoutMs);
     });
   }
 }
