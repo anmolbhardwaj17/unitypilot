@@ -3,7 +3,9 @@ import { resolveProjectRoot } from "./config.js";
 import { StateStore } from "./state/store.js";
 import { registerBridgeTools } from "./tools/bridge-tools.js";
 import { createToolContext } from "./tools/context.js";
+import { registerImportAssets } from "./tools/import-assets.js";
 import { registerLifecycleTools } from "./tools/lifecycle.js";
+import { registerScriptWrite } from "./tools/script-write.js";
 import { getStatus } from "./tools/status.js";
 
 /**
@@ -37,9 +39,8 @@ export function createServer(): McpServer {
 
   registerLifecycleTools(server, ctx);
   registerBridgeTools(server, ctx);
-  // NOTE: import_assets is implemented (tools/import-assets.ts) but intentionally NOT
-  // registered yet — its bridge-side refresh_assets can trigger a domain reload that drops
-  // the headless pump, so it ships with Phase 5b's reload-resilience work.
+  registerImportAssets(server, ctx);
+  registerScriptWrite(server, ctx);
 
   return server;
 }

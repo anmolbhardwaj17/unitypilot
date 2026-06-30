@@ -82,9 +82,16 @@ const PROXY_TOOLS: ProxyTool[] = [
     },
     method: "update_component",
   },
-  // NOTE: execute_menu_item is intentionally NOT proxied in 5a — GameObject-creation
-  // menu items block the main thread in batch mode and wedge the bridge. Primitives go
-  // through create_primitive instead.
+  {
+    name: "gameobject_get",
+    description:
+      "Get a GameObject's details including its components, by path or instanceId. Legal only in 'launched'.",
+    schema: { objectPath: z.string().optional(), instanceId: z.number().optional() },
+    method: "get_gameobject",
+  },
+  // NOTE: execute_menu_item is intentionally NOT proxied — GameObject-creation menu items
+  // block the main thread in batch mode and wedge the bridge. Primitives go through
+  // create_primitive instead.
 ];
 
 /** Guard + serialize + forward a bridge call. Exported for reuse by import_assets (Phase 5a). */

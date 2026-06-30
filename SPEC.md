@@ -294,9 +294,11 @@ Split at the recompile/domain-reload boundary (discovered in the Phase 5 spike, 
 - Two headless requirements discovered and solved: a blocking main-thread **message pump** in the bridge (the editor update loop is idle in `-batchmode`, so `delayCall`/coroutine dispatch never fire — only the first command processed), and switching the orchestrator's WS client to the **`ws` package** (Node's built-in WebSocket mis-reads websocket-sharp frames after the first). See `packages/bridge/FORK.md`.
 - **Deliverable:** headless "create a scene → add a cube → save scene → get scene info" end to end on a Mac. ✅
 
-**Phase 5b — AssetDatabase ops + domain-reload resilience**
-- `import_assets` (hybrid: orchestrator copies into `Assets/`, forked `refresh_assets` imports) and `script_write` (orchestrator writes `.cs` → `recompile_scripts`, attach via `update_component`) BOTH go through `AssetDatabase` operations that can trigger a Unity **domain reload**, which tears down and restarts the bridge + headless pump. So both need `BridgeClient` auto-reconnect (and pump restart) across the reload — the core 5b problem.
-- **Deliverable:** headless "import an asset" and "write a script, attach it, recompile clean," surviving the reload. (Dovetails with Phase 6's console/error→fix loop.)
+**Phase 5b — AssetDatabase ops + domain-reload resilience** *(mostly done in interactive mode)*
+- Done in interactive mode (the default now): **`import_assets`** (orchestrator copies into `Assets/`, forked `refresh_assets` does a `ForceSynchronousImport` — verified: Unity generates the `.meta`). **`script_write`** writes the `.cs`, triggers `refresh_assets`+`recompile_scripts`, waits for the reload to drop the WS, and **reconnects** (the session's `BridgeClient` is swapped for the post-reload one) — verified: `recompiled: true`, script compiles clean.
+- Remaining: (a) **component attach after reload** — `update_component` reports success but the freshly-compiled MonoBehaviour doesn't always appear via `gameobject_get` (type-resolution timing right after the reload); (b) **headless reload resilience** (the `-batchmode` pump doesn't survive a reload — its thread dies with the AppDomain); (c) **resume/robustness gaps** (below).
+- **Robustness gaps found in 5b (real, should be hardened next):** on orchestrator restart, a persisted `state: "launched"` with no live connection wedges the user (`launch` is illegal, bridge tools fail — `status` should detect `launched` + `bridgeConnected:false` and allow re-launch); a crashed/bad-connection `shutdown` leaves the editor running + a stale `Temp/UnityLockfile` that blocks the next launch.
+- **Deliverable:** "import an asset" ✅ and "write a script that compiles clean across the reload" ✅ in interactive mode; full attach + the robustness items are the cleanup pass.
 
 ### Phase 6 — Feedback loop
 - `read_console`, `run_tests`, and `screenshot` / `camera_view`.
