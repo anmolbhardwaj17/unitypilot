@@ -14,42 +14,6 @@ document.querySelectorAll(".copy-btn").forEach((btn) => {
   });
 });
 
-// --- hero background: animated retro green perspective grid (vector-display vibe) ---
-const hb = document.getElementById("heroBg");
-if (hb && hb.getContext) {
-  const g = hb.getContext("2d");
-  let W, H;
-  const r = () => {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = hb.clientWidth; H = hb.clientHeight;
-    hb.width = W * dpr; hb.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  };
-  r(); window.addEventListener("resize", r);
-  let t = 0;
-  function drawGrid() {
-    if (!reduce) t += 1;
-    g.clearRect(0, 0, W, H);
-    const horizon = H * 0.62, vp = W / 2;
-    g.strokeStyle = "rgba(150,220,70,.30)"; g.lineWidth = 1;
-    g.shadowColor = "rgba(160,230,80,.45)"; g.shadowBlur = 6;
-    const cols = 22, spread = W * 1.3;
-    for (let i = -cols; i <= cols; i++) {
-      const xb = vp + (i / cols) * spread;
-      g.beginPath(); g.moveTo(xb, H); g.lineTo(vp, horizon); g.stroke();
-    }
-    const rows = 16;
-    for (let k = 0; k < rows; k++) {
-      const p = ((k + t * 0.012) % rows) / rows;
-      const y = horizon + (H - horizon) * (p * p);
-      g.globalAlpha = Math.min(1, p * 1.6) * 0.5;
-      g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke();
-    }
-    g.globalAlpha = 1; g.shadowBlur = 0;
-    requestAnimationFrame(drawGrid);
-  }
-  requestAnimationFrame(drawGrid);
-}
-
 // --- hero CRT screen: a small spinning green dithered cube + a typing build log ---
 const hs = document.getElementById("heroScreen");
 const hlog = document.getElementById("heroLog");
