@@ -1,5 +1,5 @@
 {
-  "name": "unity-mcp-orchestrator-monorepo",
+  "name": "unitypilot",
   "version": "0.0.0",
   "private": true,
   "packageManager": "pnpm@9.15.0",

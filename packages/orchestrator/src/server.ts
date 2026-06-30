@@ -15,7 +15,7 @@ import { getStatus } from "./tools/status.js";
  */
 export function createServer(): McpServer {
   const server = new McpServer({
-    name: "unity-mcp-orchestrator",
+    name: "unitypilot",
     version: "0.0.0",
   });
 

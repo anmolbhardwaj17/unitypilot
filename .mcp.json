@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "unity-orchestrator": {
+    "unitypilot": {
       "command": "node",
       "args": ["/Users/apple/Desktop/code/unity-mcp/packages/orchestrator/dist/index.js"]
     }

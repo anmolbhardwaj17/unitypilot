@@ -1,6 +1,6 @@
-# Unity MCP Orchestrator — Project Spec
+# UnityPilot — Project Spec
 
-> **Working name:** `unity-mcp-orchestrator` (rename before publish)
+> **Name:** **UnityPilot** (working package id `unity-mcp-orchestrator`; npm package name finalized before publish)
 > **One-line pitch:** One npm install, and an AI agent can install Unity, scaffold a project, launch it headless, import assets, build scenes, write scripts, run tests, and fix its own console errors — without the developer ever opening the Unity Editor by hand.
 > **Scope of v1:** macOS only (Apple Silicon + Intel). Windows/Linux are stubbed but not built.
 > **Audience for this doc:** Claude Code. Read this top to bottom before writing any code. Build strictly phase by phase. Do not skip ahead.

@@ -1,6 +1,6 @@
-# Unity MCP Orchestrator
+# UnityPilot
 
-> **Working name** — rename before publish. See `SPEC.md` for the full spec and `CLAUDE.md` for the working agreement.
+> The Unity MCP Orchestrator. See `SPEC.md` for the full spec and `CLAUDE.md` for the working agreement.
 
 One npm install, and an AI agent can install Unity, scaffold a project, launch it
 headless, import assets, build scenes, write scripts, run tests, and fix its own
