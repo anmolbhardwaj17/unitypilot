@@ -12,25 +12,16 @@
 import { join, resolve as resolvePath } from "node:path";
 import { type StateStore, mergeFrozen } from "../state/store.js";
 import type { Filesystem, ProcessRunner } from "./deps.js";
+import { LICENSE_MESSAGE, isLicenseFailure, logTail } from "./diagnostics.js";
 import { bridgeFileRef, injectBridgeDependency } from "./manifest.js";
 
 /** Default ceiling for the headless createProject run; surfaces a G3-style diagnostic. */
 export const DEFAULT_CREATE_TIMEOUT_MS = 240_000;
 
-/** Signatures of the G6 "no headless license" failure in Unity's log. */
-const LICENSE_FAILURE = /No valid Unity Editor license|com\.unity\.editor\.headless|0 entitlement/i;
-
 /** Turn a non-zero Unity exit into an actionable message (G6 license detection). */
 export function diagnoseFailure(code: number, log: string): string {
-  const trimmed = log.trim();
-  if (code === 198 || LICENSE_FAILURE.test(trimmed)) {
-    return (
-      "Unity has no valid license for headless batchmode (G6). Activate one: open Unity Hub → " +
-      "sign in → ensure a Personal or Pro license is active, then retry. Headless -batchmode " +
-      "requires an activated license even though no GUI opens."
-    );
-  }
-  return `Unity -createProject failed (code ${code}): ${trimmed.slice(-500) || "(no output)"}`;
+  if (code === 198 || isLicenseFailure(log)) return LICENSE_MESSAGE;
+  return `Unity -createProject failed (code ${code}): ${logTail(log) || "(no output)"}`;
 }
 
 export interface CreateProjectDeps {

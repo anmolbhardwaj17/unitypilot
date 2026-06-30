@@ -137,13 +137,13 @@ Split by which process executes them.
 - Done = project folder exists, bridge registered in manifest, no creation errors. → `project_created`
 
 **`launch`**
-- Input: `{ projectPath: string, graphics?: boolean }` (default `graphics: false`)
-- Behavior: boot the editor (`-batchmode -nographics` unless graphics requested). Wait for the bridge's WebSocket to report ready, with a **timeout** that returns a diagnostic on failure (see Gotcha G3). **Never pass `-logFile`** — it collides with stdout comms (Gotcha G1).
+- Input: `{ projectPath: string, graphics?: boolean }` (default `graphics: false`). `projectPath` must equal the resolved project root (§3), as for `create_project`.
+- Behavior: boot the editor non-quitting (`-projectPath <root> -batchmode`, plus `-nographics` unless graphics requested, plus `-logFile -` for diagnostics — safe per the re-scoped G1). The vendored bridge auto-starts its WebSocket server (`[InitializeOnLoad]`, `AutoStartServer=true`). The orchestrator's WS client then polls `ws://localhost:8090/McpUnity` until the upgrade succeeds (the handshake), within a **timeout** that, on expiry or early editor exit, kills the editor and returns a diagnostic (G3 Gatekeeper, or G6 license/compile from the captured log). The live editor process handle is held in memory for `shutdown`.
 - Done = WS handshake confirmed. → `launched`
 
 **`shutdown`**
 - Input: `{}`
-- Behavior: clean editor exit, close WS. → `project_created`
+- Behavior: terminate the in-memory editor process (the WS server dies with it) and clear the session. → `project_created`. If no live process is held (e.g. orchestrator restarted), transition state anyway and note the editor may still be running.
 
 **`status`**
 - Input: `{}`
@@ -204,7 +204,7 @@ export interface UnityResolver {
 
 ## 6. Critical gotchas (bake these in from day one)
 
-- **G1 — Never use `-logFile` while the bridge is attached (`launch`).** The bridge relies on Unity's standard output for communication; passing `-logFile` during a bridge session breaks comms. Inherited hard constraint from the nurture-tech runner pattern. **Scope (clarified in Phase 3):** this applies to `launch` and any bridge-attached run. For bridge-free headless runs (`create_project`'s `-createProject`), the orchestrator passes `-logFile -` to capture Unity's log on **stdout** — there is no bridge to collide with — so failures produce a real diagnostic instead of an opaque exit code.
+- **G1 — `-logFile` collides only with a *stdout-transport* bridge (re-scoped in Phase 4).** The original hard constraint (inherited from the nurture-tech runner) assumed a bridge that pipes comms over Unity's **stdout**, so `-logFile` would corrupt it. **The bridge fork actually chosen in Phase 4 (CoderGamester/mcp-unity) communicates over a WebSocket (`ws://localhost:8090/McpUnity`), not stdout.** Comms are therefore out-of-band, and `-logFile -` is **safe in every phase** — including `launch` — and the orchestrator uses it everywhere to capture Unity's log for real diagnostics (license/compile failures, G6). The never-`-logFile` rule would only re-apply if a future bridge used stdout as its transport; if one ever does, scope `-logFile` off for that bridge's `launch` only.
 - **G2 — Apple Silicon vs Intel editor builds are separate binaries.** Always install the arch-matched build. Detect with `uname -m`; never assume. Mismatched arch is a confusing silent failure.
 - **G3 — Gatekeeper / first-launch permission hang.** macOS may quarantine or prompt on a freshly installed editor binary the first time it's launched non-interactively, and headless launch can hang silently waiting on a prompt the user never sees. `launch` and `status` must **time out** and report `"editor launched but no handshake — possible macOS permissions prompt; try launching the editor once manually"` rather than hanging forever.
 - **G4 — Frozen paths, never re-resolved.** Per §2, once a path is in `state.json` it is read, not recomputed.
