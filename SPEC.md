@@ -104,6 +104,19 @@ none ──ensure_editor──► editor_ready ──create_project──► pro
 }
 ```
 
+**Project-root resolution (one project per session).** `status` and the lifecycle
+tools take no project handle, so the orchestrator resolves a single project root at
+startup: `UNITY_MCP_PROJECT_ROOT` (env) if set, else `process.cwd()`. The state file
+is always `<projectRoot>/.unity-mcp/state.json`. This also resolves the "`editor_ready`
+exists before the project does" ordering: `ensure_editor` (Phase 3) writes the state
+file at the resolved root *before* any Unity project is scaffolded there;
+`create_project` later populates the Unity project into that same root (and validates
+its `projectPath` against it — detail finalized in Phase 3).
+
+**Illegal-tool-for-state** is reported as a structured tool *result* with
+`isError: true` and a JSON body `{ error, tool, currentState, requiredTool, message }`,
+not a thrown protocol error — so the agent can read `requiredTool` and self-correct.
+
 ---
 
 ## 4. Tool surface

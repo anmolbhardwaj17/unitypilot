@@ -1,19 +1,49 @@
 /**
- * The `status` tool — the lifecycle resume anchor (SPEC §4a).
+ * The `status` tool — the lifecycle resume anchor (SPEC §4a / §2).
  *
- * Phase 0 scope: wiring only. There is no resolver (Phase 1) and no state file
- * (Phase 2) yet, so the orchestrator has nothing to read and reports the initial
- * lifecycle state unconditionally. Later phases replace this with a read of
- * `<project>/.unity-mcp/state.json` and the real frozen-path payload.
+ * Pure: it maps a {@link ProjectState} (or `null` when no project is initialized)
+ * to the reported shape. Reading the state file is the caller's job (server.ts),
+ * which keeps this unit-testable without I/O.
  */
 
-/** The lifecycle states from SPEC §3. Only `none` is reachable in Phase 0. */
-export type LifecycleState = "none" | "editor_ready" | "project_created" | "launched" | "busy";
+import { type LifecycleState, nextLifecycleTool } from "../fsm/machine.js";
+import { FROZEN_KEYS, type ProjectState } from "../state/schema.js";
 
 export interface StatusResult {
   state: LifecycleState;
+  arch: string | null;
+  unityVersion: string | null;
+  editorPath: string | null;
+  projectPath: string | null;
+  bridgeVersion: string | null;
+  /** Names of values that are frozen (resolved once, never recomputed). */
+  frozen: string[];
+  /** The next lifecycle tool to call to make progress, or `null` if fully advanced. */
+  nextTool: string | null;
 }
 
-export function getStatus(): StatusResult {
-  return { state: "none" };
+export function getStatus(state: ProjectState | null): StatusResult {
+  if (state === null) {
+    return {
+      state: "none",
+      arch: null,
+      unityVersion: null,
+      editorPath: null,
+      projectPath: null,
+      bridgeVersion: null,
+      frozen: [],
+      nextTool: nextLifecycleTool("none"),
+    };
+  }
+
+  return {
+    state: state.state,
+    arch: state.arch ?? null,
+    unityVersion: state.unityVersion ?? null,
+    editorPath: state.editorPath ?? null,
+    projectPath: state.projectPath ?? null,
+    bridgeVersion: state.bridgeVersion ?? null,
+    frozen: FROZEN_KEYS.filter((k) => state.frozen[k] === true),
+    nextTool: nextLifecycleTool(state.state),
+  };
 }
