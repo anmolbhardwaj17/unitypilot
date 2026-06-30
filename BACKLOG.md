@@ -55,31 +55,28 @@ maybe a small C# `editor_status` tool in the bridge.
 
 ---
 
-## P1 — `script_write` reconnect-across-reload reliability (NEW, found while fixing P2)
-**What:** `script_write` writes+compiles fine, but the orchestrator's reconnect after the domain
-reload is **flaky** — sometimes it attaches cleanly (verified once), sometimes the bridge doesn't
-come back within the reconnect window (`reconnect_timeout`), sometimes the recompile doesn't fire
-on the first launch after a bridge C# change.
-**Why it matters:** writing scripts is a core capability; it needs to be reliable, not 1-in-3.
-**Likely causes to investigate:** the bridge sometimes does a *double* domain reload; port 8090 in
-TIME_WAIT briefly after the server restarts; `connectBridge`'s 3s per-candidate timeout too short;
-no detection of "compile finished" before reconnecting (we reconnect on first WS drop). Also a
-persistent "first launch after a bridge C# edit is flaky" pattern (the bridge recompiles mid-launch).
-**Fix:** harden `reconnectAfterReload` — wait for compile-finished (`editor_status.ready`) AND a
-stable connection (N consecutive good `get_scene_info`), tolerate multiple reloads, longer/﻿retried
-connect. **Effort:** ~1 focused session of real-Unity iteration. **Files:** `tools/script-write.ts`.
+## P1 — `script_write` GameObject-survives-reload reliability (the remaining tail)
+**What:** `script_write` now reliably writes + compiles + **survives the domain reload + reconnects**
+in BOTH interactive and headless (`recompiled:true`). The remaining flakiness is the **attach**:
+the target GameObject is sometimes "not found" after the reload (`GameObject 'ClaudeCube' or instance
+ID not found`) even though the scene was saved first. So the object doesn't reliably persist/resolve
+across the reload. (Worked cleanly once; failed on later runs.)
+**Why it matters:** "write a script and attach it" needs to be dependable.
+**Likely causes / fix:** after reconnect, the active scene/object may need re-opening or re-resolving
+— re-`load_scene` the saved scene (or re-`get_gameobject` by idOrName to get a fresh instanceId and
+attach by id) once the editor is `ready`; tolerate Unity's occasional double reload. **Effort:** ~1
+focused real-Unity session. **Files:** `tools/script-write.ts`.
 
-## P3 — Headless reload resilience (KNOWN LIMITATION, not a quick fix)
-**What:** In headless (`-batchmode`) mode, the `RunHeadless` pump **blocks the main thread**, and a
-Unity domain reload *needs* that main thread — so a recompile can't reload while the pump runs
-(deadlock). Attempting to restart the pump from `[DidReloadScripts]` instead **broke headless
-initial load** (the pump blocks init). Verified: import/scripts don't survive a reload headless.
-**Why it's P3:** Interactive (visible editor) is the default and the maintainer's workflow, where
-reloads are handled natively. Headless only matters for CI/automation later.
-**Real fix (not small):** redesign the headless pump to be **cooperative/non-blocking** — e.g. a
-short-lived pump that yields control back to Unity so reloads can happen, then is re-entered. This
-is an architectural change, not a patch. Until then, **headless = no recompile/import** (scenes,
-objects, components still work headless). **Files:** `packages/bridge` pump + launch path.
+## ✅ P3 — Headless reload resilience (CORE FIXED via cooperative pump)
+**Was:** the blocking `RunHeadless` pump deadlocked with domain reloads (a recompile needs the main
+thread the pump holds), and restarting from `[DidReloadScripts]` blocked headless init.
+**Fixed:** the pump is now **cooperative** — on a recompile it **yields** the main thread (returns
+from `RunHeadless`) so Unity can compile + domain-reload, then **re-enters** from `AfterReload`,
+gated by `SessionState` so it doesn't block the initial load. `recompile_scripts` is special-cased
+in the headless sync handler (RequestScriptCompilation + yield). **Verified:** headless `script_write`
+reached `recompiled:true` and a successful attach. The only residual is the shared
+GameObject-survives-reload tail above. **Files:** `packages/bridge/.../McpUnityServer.cs`,
+`McpUnitySocketHandler.cs`.
 
 ---
 

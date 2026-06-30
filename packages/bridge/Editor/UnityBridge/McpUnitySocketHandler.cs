@@ -108,6 +108,20 @@ namespace McpUnity.Unity
                 {
                     responseJson = CreateErrorResponse("Missing method in request", "invalid_request");
                 }
+                else if (method == "recompile_scripts")
+                {
+                    // FORK (Phase 5b/P3): recompile_scripts is async upstream, but headless can't run
+                    // the coroutine. Request compilation directly, then yield the pump so the domain
+                    // reload can happen (the pump re-enters from AfterReload afterwards).
+                    UnityEditor.Compilation.CompilationPipeline.RequestScriptCompilation();
+                    responseJson = new JObject
+                    {
+                        ["success"] = true,
+                        ["type"] = "text",
+                        ["message"] = "Script compilation requested (headless)"
+                    };
+                    McpUnity.Unity.McpUnityServer.RequestHeadlessYield();
+                }
                 else if (_server.TryGetTool(method, out var tool))
                 {
                     responseJson = tool.IsAsync

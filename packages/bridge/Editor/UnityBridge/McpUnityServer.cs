@@ -292,6 +292,7 @@ namespace McpUnity.Unity
         // tools synchronously. No dependency on the dead editor loop.
         private static readonly ConcurrentQueue<Action> _headlessActions = new ConcurrentQueue<Action>();
         private static volatile bool _headlessPumpRunning;
+        private static volatile bool _yieldForReload;
 
         /// <summary>
         /// True while the headless pump is running. Thread-safe (volatile bool) so the WS
@@ -299,6 +300,16 @@ namespace McpUnity.Unity
         /// Application.isBatchMode.
         /// </summary>
         public static bool HeadlessPumpActive => _headlessPumpRunning;
+
+        /// <summary>
+        /// FORK (Phase 5b/P3): ask the headless pump to yield the main thread after the current
+        /// drain so Unity can perform a pending domain reload (a recompile can't reload while the
+        /// blocking pump holds the main thread). The pump re-enters from AfterReload post-reload.
+        /// </summary>
+        public static void RequestHeadlessYield()
+        {
+            _yieldForReload = true;
+        }
 
         public static void EnqueueHeadless(Action action)
         {
@@ -329,6 +340,15 @@ namespace McpUnity.Unity
                 {
                     try { action(); }
                     catch (Exception e) { McpLogger.LogError($"Headless action error: {e.Message}"); }
+                }
+                if (_yieldForReload)
+                {
+                    // Cooperative yield: return the main thread to Unity so a pending recompile can
+                    // run + domain-reload. AfterReload re-enters RunHeadless once the reload finishes.
+                    _yieldForReload = false;
+                    _headlessPumpRunning = false;
+                    McpLogger.LogInfo("Headless pump yielding for domain reload.");
+                    return;
                 }
                 Thread.Sleep(10);
             }
@@ -751,12 +771,21 @@ namespace McpUnity.Unity
             // Ensure Instance is created and hooks are set up after initial domain load
             var currentInstance = Instance;
 
-            // NOTE (Phase 5b/P3): headless reload resilience is NOT solved here. Restarting the
-            // RunHeadless pump from this hook blocks the editor's initial-load init (the pump
-            // holds the main thread), and more fundamentally a domain reload needs the main
-            // thread that the blocking pump occupies. Surviving a reload headless requires a
-            // cooperative (non-blocking) pump redesign — tracked in BACKLOG.md as a known
-            // limitation. Interactive mode (the default) handles reloads natively.
+            // FORK (Phase 5b/P3): cooperative headless pump re-entry. SessionState survives domain
+            // reloads, so it distinguishes the INITIAL load (let -executeMethod start the pump —
+            // re-entering here would block init) from a POST-RELOAD pass (the pump yielded for the
+            // reload and must be re-entered now).
+            if (Application.isBatchMode && AllowHeadless)
+            {
+                if (SessionState.GetBool("McpHeadlessPumpInit", false))
+                {
+                    RunHeadless();
+                }
+                else
+                {
+                    SessionState.SetBool("McpHeadlessPumpInit", true);
+                }
+            }
         }
 
         /// <summary>
