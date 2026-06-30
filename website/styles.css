@@ -84,7 +84,12 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.02em; line-height: 
 @media (max-width: 760px) { .nav-mid { display: none; } }
 
 /* ---------- hero ---------- */
-.hero { padding: 64px 0 36px; border-bottom: 1px solid var(--line); }
+.hero { position: relative; overflow: hidden; padding: 92px 0 100px; min-height: 86vh; display: flex; align-items: center; border-bottom: 1px solid var(--line); }
+.hero-bg { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; display: block; }
+.hero-scan { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: repeating-linear-gradient(transparent 0 2px, rgba(0,0,0,.18) 3px); opacity: .4; }
+.hero-scrim { position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(72% 54% at 50% 33%, rgba(10,10,10,.92), transparent 80%), linear-gradient(rgba(10,10,10,.55), rgba(10,10,10,0) 34%); }
+.hero > .wrap { position: relative; z-index: 2; width: 100%; }
 .hero-top { display: flex; justify-content: center; align-items: center; margin-bottom: 30px; }
 .hero-top .dots { display: flex; gap: 7px; align-items: center; }
 .hero-top .dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line-2); }
@@ -107,26 +112,21 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.02em; line-height: 
 .crtframe .cf-img img { display: block; width: 100%; }
 
 .cta-row { display: flex; flex-wrap: wrap; gap: 14px; margin: 32px 0 0; align-items: center; }
-/* real keycap = top face sitting on a larger darker base (sidewall) that peeks out below */
-.btn { position: relative; z-index: 0; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-  padding: 16px 36px; border-radius: 18px; font: 600 16px var(--font); cursor: pointer; border: 0;
-  transition: transform .09s cubic-bezier(.3,.7,.4,1); }
-.btn::before { content: ""; position: absolute; z-index: -1; left: -3px; right: -3px; top: -1px; bottom: -9px;
-  border-radius: 21px; transition: bottom .09s ease; }
-.btn:active { transform: translateY(6px); }
-.btn:active::before { bottom: -3px; }
-
-.btn-primary { color: #16210a;
-  background: linear-gradient(180deg, #ddff70 0%, #c2f048 100%);
-  box-shadow: inset 0 2px 1px rgba(255,255,255,.85), inset 0 -8px 10px rgba(118,158,20,.3); }
-.btn-primary::before { background: linear-gradient(180deg, #a9d836, #7da11e);
-  box-shadow: 0 16px 24px rgba(0,0,0,.5), 0 6px 9px rgba(0,0,0,.4), 0 16px 34px rgba(160,220,50,.18); }
-
+/* clean matte keycap: thin chamfer (light top / dark bottom) + tight crisp shadow */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 16px 34px; border-radius: 14px; font: 600 16px var(--font); cursor: pointer; border: 0;
+  transition: transform .07s ease, box-shadow .07s ease; }
+.btn:active { transform: translateY(2px); }
+.btn-primary { color: #15200a;
+  background: linear-gradient(180deg, #d2f24f 0%, #bfe93f 100%);
+  box-shadow: inset 0 1.5px 0 rgba(255,255,255,.6), inset 0 -2.5px 0 rgba(120,160,20,.45),
+    0 1px 1px rgba(0,0,0,.45), 0 7px 12px rgba(0,0,0,.45); }
+.btn-primary:active { box-shadow: inset 0 1.5px 0 rgba(255,255,255,.6), 0 2px 4px rgba(0,0,0,.45); }
 .btn-ghost { color: var(--ink);
-  background: linear-gradient(180deg, #363636 0%, #242424 100%);
-  box-shadow: inset 0 2px 1px rgba(255,255,255,.16), inset 0 -8px 10px rgba(0,0,0,.4); }
-.btn-ghost::before { background: linear-gradient(180deg, #1f1f1f, #0c0c0c);
-  box-shadow: 0 16px 24px rgba(0,0,0,.55), 0 6px 9px rgba(0,0,0,.45); }
+  background: linear-gradient(180deg, #2d2d2d 0%, #202020 100%);
+  box-shadow: inset 0 1.5px 0 rgba(255,255,255,.13), inset 0 -2.5px 0 rgba(0,0,0,.45),
+    0 1px 1px rgba(0,0,0,.45), 0 7px 12px rgba(0,0,0,.5); }
+.btn-ghost:active { box-shadow: inset 0 1.5px 0 rgba(255,255,255,.13), 0 2px 4px rgba(0,0,0,.5); }
 
 .install { margin: 26px 0 0; display: inline-flex; align-items: center; gap: 13px; background: #000; color: var(--ink); border: 1px solid var(--line-2); border-radius: var(--r-sm); padding: 12px 13px 12px 16px; font-family: var(--mono); font-size: 14px; max-width: 100%; overflow: auto; }
 .install .prompt { color: var(--accent); }
@@ -156,7 +156,7 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.02em; line-height: 
 
 /* ---------- sections ---------- */
 section { padding: 84px 0; border-bottom: 1px solid var(--line); }
-.head { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; margin-bottom: 44px; }
+.head { display: flex; justify-content: space-between; align-items: flex-start; gap: 30px; margin-bottom: 44px; }
 .head h2 { font-size: clamp(24px, 3vw, 34px); font-weight: 600; letter-spacing: -0.022em; max-width: 20ch; }
 .head .head-r { text-align: right; max-width: 34ch; }
 .head .head-r p { color: var(--ink-soft); font-size: 15px; margin: 10px 0 0; }
