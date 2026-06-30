@@ -112,8 +112,8 @@ export function registerLifecycleTools(server: McpServer, ctx: ToolContext): voi
 
   server.tool(
     "launch",
-    "Boot the editor headless and confirm the bridge handshake. Legal in 'project_created'. → launched.",
-    { projectPath: z.string(), graphics: z.boolean().optional() },
+    "Boot the editor (visible by default; headless:true for CI) and confirm the bridge handshake. Legal in 'project_created'. → launched.",
+    { projectPath: z.string(), headless: z.boolean().optional() },
     async (args) => {
       const blocked = await guard(store, "launch");
       if (blocked) return blocked;

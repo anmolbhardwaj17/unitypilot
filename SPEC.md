@@ -58,7 +58,7 @@ These are decided. Do not re-litigate them mid-build.
 | Project state storage | Project-local JSON file at `<project>/.unity-mcp/state.json` | Inspectable, git-ignorable, simple |
 | Bridge source | **Fork** an MIT-licensed bridge (see §7) | Don't rebuild commodity tools |
 | Target platform v1 | macOS only (arm64 + x64) | Maintainer's machine; deletes the cross-platform tax |
-| Editor launch | Headless (`-batchmode -nographics`) by default | Core premise; graphics mode is opt-in |
+| Editor launch | **Interactive (visible editor) by default**; headless (`-batchmode -nographics`) is opt-in (`headless: true`) | **Revised in Phase 5.** The maintainer's workflow is Unity in one window + Claude Code in the other, watching changes land live and reacting ("the human owns visual feedback", §8). Interactive is also the bridge's native mode — the editor loop runs, so the batch-mode pump/reload surgery (§4b/FORK.md) isn't needed. Headless stays for CI/automation. |
 
 ### Determinism principle (load-bearing — this is the moat)
 
@@ -137,8 +137,8 @@ Split by which process executes them.
 - Done = project folder exists, bridge registered in manifest, no creation errors. → `project_created`
 
 **`launch`**
-- Input: `{ projectPath: string, graphics?: boolean }` (default `graphics: false`). `projectPath` must equal the resolved project root (§3), as for `create_project`.
-- Behavior: boot the editor non-quitting (`-projectPath <root> -batchmode`, plus `-nographics` unless graphics requested, plus `-logFile -` for diagnostics — safe per the re-scoped G1). The vendored bridge auto-starts its WebSocket server (`[InitializeOnLoad]`, `AutoStartServer=true`). The orchestrator's WS client then polls `ws://localhost:8090/McpUnity` until the upgrade succeeds (the handshake), within a **timeout** that, on expiry or early editor exit, kills the editor and returns a diagnostic (G3 Gatekeeper, or G6 license/compile from the captured log). The live editor process handle is held in memory for `shutdown`.
+- Input: `{ projectPath: string, headless?: boolean }` (default `headless: false` → **visible editor**). `projectPath` must equal the resolved project root (§3), as for `create_project`.
+- Behavior — **interactive (default):** boot the real editor (`-projectPath <root> -logFile -`, no `-batchmode`). The user sees the Scene/Game view; the bridge runs in its native mode (editor loop alive → no pump). **Headless (`headless: true`):** `-batchmode -nographics` plus `-executeMethod …RunHeadless` (the pump) and `UNITY_MCP_HEADLESS=1`. Either way the bridge auto-starts its WebSocket server and the orchestrator's WS client polls `ws://localhost:8090/McpUnity` until the handshake succeeds, within a **timeout** that, on expiry or early editor exit, kills the editor and returns a diagnostic (G3 Gatekeeper, or G6 license/compile from the captured log). The live editor process handle is held in memory for `shutdown`.
 - Done = WS handshake confirmed. → `launched`
 
 **`shutdown`**

@@ -25,7 +25,7 @@ export interface EditorHandle {
 }
 
 export interface LaunchDeps {
-  startEditor(editorPath: string, projectPath: string, graphics: boolean): EditorHandle;
+  startEditor(editorPath: string, projectPath: string, headless: boolean): EditorHandle;
   /** One attempt to open a persistent bridge connection; resolves to a live client or null. */
   connectBridge(): Promise<BridgeClient | null>;
   wsUrl: string;
@@ -45,7 +45,8 @@ export interface LaunchSession {
 
 export interface LaunchInput {
   projectPath: string;
-  graphics?: boolean;
+  /** Default false → visible/interactive editor. true → -batchmode headless (CI). */
+  headless?: boolean;
 }
 
 function defaultSleep(ms: number): Promise<void> {
@@ -78,7 +79,7 @@ export async function launch(
   const pollInterval = deps.pollIntervalMs ?? HANDSHAKE_POLL_INTERVAL_MS;
   const deadline = now() + (deps.handshakeTimeoutMs ?? DEFAULT_HANDSHAKE_TIMEOUT_MS);
 
-  const handle = deps.startEditor(current.editorPath, projectRoot, input.graphics ?? false);
+  const handle = deps.startEditor(current.editorPath, projectRoot, input.headless ?? false);
 
   try {
     while (now() < deadline) {

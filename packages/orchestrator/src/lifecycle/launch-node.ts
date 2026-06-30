@@ -17,21 +17,19 @@ const MAX_LOG = 200_000;
 export function startEditorProcess(
   editorPath: string,
   projectPath: string,
-  graphics: boolean,
+  headless: boolean,
 ): EditorHandle {
-  const args = ["-projectPath", projectPath, "-batchmode"];
-  if (!graphics) args.push("-nographics");
+  // Interactive (default): boot the real visible editor — the bridge runs in its native
+  // mode (editor loop alive), no -batchmode pump needed, and the user watches changes live.
+  // Headless (opt-in, CI): -batchmode -nographics + the forked RunHeadless pump (the editor
+  // loop is idle in batch mode) + UNITY_MCP_HEADLESS=1 to opt the bridge in. See FORK.md.
+  const args = ["-projectPath", projectPath];
+  if (headless) args.push("-batchmode", "-nographics");
   args.push("-logFile", "-");
-  // Drive the forked bridge's headless message pump (the editor loop is idle in batch
-  // mode, so delayCall/coroutine dispatch don't fire). RunHeadless blocks the main
-  // thread draining WS work and executing tools synchronously — see FORK.md.
-  args.push("-executeMethod", "McpUnity.Unity.McpUnityServer.RunHeadless");
+  if (headless) args.push("-executeMethod", "McpUnity.Unity.McpUnityServer.RunHeadless");
 
-  // UNITY_MCP_HEADLESS opts the (forked) bridge into running its WS server in batch
-  // mode — upstream disables it there for CI safety. See packages/bridge/FORK.md.
-  const child = spawn(editorPath, args, {
-    env: { ...process.env, UNITY_MCP_HEADLESS: "1" },
-  });
+  const env = headless ? { ...process.env, UNITY_MCP_HEADLESS: "1" } : process.env;
+  const child = spawn(editorPath, args, { env });
   let log = "";
   let alive = true;
   const append = (chunk: Buffer) => {
