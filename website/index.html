@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UnityPilot — Autopilot for Unity</title>
-  <meta name="description" content="Put Unity on autopilot. Tell Claude Code what you want and UnityPilot flies the editor — building scenes, writing and fixing code, importing assets, and bringing back the shot. macOS." />
+  <title>UnityPilot — Build Unity games by just asking</title>
+  <meta name="description" content="UnityPilot plugs into Claude Code and runs Unity for you — building scenes, writing and fixing code, importing assets, and showing you the result. No Unity experience needed. macOS." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+  <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0a0a' stroke='%23ff5a14'/%3E%3Cpath d='M16 6l9 18-9-4-9 4z' fill='%23ff5a14'/%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0a' stroke='%23ff5a14'/%3E%3Crect x='13' y='13' width='6' height='6' rx='1' fill='%23ff5a14'/%3E%3C/svg%3E" />
 </head>
 <body>
 
@@ -17,13 +19,13 @@
   <header class="nav">
     <div class="wrap">
       <a class="brand" href="#top">
-        <svg class="mk" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6" fill="#0a0a0a" stroke="#ff5a14"/><path d="M16 6l9 18-9-4-9 4z" fill="#ff5a14"/></svg>
+        <svg class="mk" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#0a0a0a" stroke="#ff5a14"/><rect x="13" y="13" width="6" height="6" rx="1" fill="#ff5a14"/></svg>
         UnityPilot
       </a>
       <nav class="nav-mid">
         <a href="#build">What it does</a>
         <a href="#fix">Self-healing</a>
-        <a href="#fly">Flight plan</a>
+        <a href="#use">Get started</a>
       </nav>
       <a class="nav-cta" href="https://github.com/anmolbhardwaj17/unitypilot" target="_blank" rel="noopener">GitHub ↗</a>
     </div>
@@ -35,21 +37,17 @@
     <section class="hero">
       <div class="wrap">
         <div class="hero-top">
-          <span class="lab"><span class="n">UNITY MCP</span> · AUTOPILOT · v0.1.0</span>
-          <div class="hud" aria-hidden="true">
-            <span class="t">HDG <span class="v" data-min="0" data-max="359" data-pad="3" data-suffix="°">042°</span></span>
-            <span class="t">ALT <span class="v g" data-min="8000" data-max="38000" data-comma="1" data-suffix=" FT">12,400 FT</span></span>
-            <span class="t">SPD <span class="v" data-min="180" data-max="320" data-suffix=" KT">268 KT</span></span>
-          </div>
+          <span class="lab"><span class="n">UNITY MCP</span> · v0.1.0 · macOS</span>
+          <span class="lab">open source · MIT</span>
         </div>
 
         <div class="hero-grid">
           <div>
-            <h1>Put Unity on<br /><span class="serif acc">autopilot.</span></h1>
+            <h1>Build Unity games<br />by just <span class="acc">asking.</span></h1>
             <p class="lead">
-              You're the pilot. Tell Claude Code what you want and UnityPilot flies the editor —
-              building scenes, writing and fixing the code, importing your assets, and bringing back
-              the shot. No Unity experience needed.
+              UnityPilot plugs into Claude Code and runs Unity for you — building scenes, writing and
+              fixing the code, importing your assets, and showing you the result. No Unity experience
+              needed.
             </p>
 
             <div class="install" id="install-line">
@@ -59,56 +57,32 @@
             </div>
 
             <div class="cta-row">
-              <a class="btn btn-primary" href="#fly">Begin pre-flight →</a>
+              <a class="btn btn-primary" href="#use">Get started →</a>
               <a class="btn btn-ghost" href="#build">See what it does</a>
             </div>
           </div>
 
-          <!-- flight computer / CRT console -->
-          <div class="console">
-            <div class="ctop">
-              <span class="ttl">Flight Computer</span>
-              <span class="lab"><span class="n">●</span> REC · SESSION 07</span>
-            </div>
-            <div class="crt">
-              <div class="crt-bar"><span>UNITYPILOT · TTY</span><span><span class="pwr"></span></span></div>
-<pre>&gt; build a spinning cube scene
-<span class="dim">[</span><span class="ok">ok</span><span class="dim">]</span> editor online · project armed
-<span class="dim">[</span><span class="ok">ok</span><span class="dim">]</span> scene "Level1" created
-<span class="dim">[</span><span class="ok">ok</span><span class="dim">]</span> player cube added
-<span class="dim">[</span><span class="ok">ok</span><span class="dim">]</span> Spin.cs written · compiled
-<span class="dim">[</span><span class="ok">ok</span><span class="dim">]</span> screenshot captured → chat
-&gt; <span class="cur">_</span></pre>
-            </div>
-            <div class="cfoot">
-              <div class="navlights">
-                <div class="nl"><i></i> Editor</div>
-                <div class="nl"><i></i> Bridge</div>
-                <div class="nl amber"><i></i> Build</div>
-              </div>
-              <div class="radar" aria-hidden="true">
-                <div class="sweep"></div>
-                <span class="blip" style="left:64%;top:38%"></span>
-                <span class="blip" style="left:40%;top:60%"></span>
-              </div>
-            </div>
+          <!-- hero visual: CRT cube -->
+          <div class="vis">
+            <div class="scr"><img src="assets/crt-cube.png" alt="A wireframe cube glowing on a vintage CRT monitor" /></div>
+            <div class="vlabel"><span>fig.00 · unitypilot</span><span>build · compile · ship</span></div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- DITHER BAND -->
-    <section class="band" style="padding:0;border-bottom:1px solid var(--line)">
-      <div class="ditherwrap empty">
-        <!-- swap in a dithered hero render here: <img src="assets/hero-dither.png" alt="" /> -->
+    <section class="band" style="padding:0">
+      <div class="ditherwrap has-img">
+        <img src="assets/hand-world.png" alt="A hand holding a small glowing world made of dithered dots" />
         <div class="reticle" id="reticle" aria-hidden="true">
-          <svg viewBox="0 0 92 92" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="46" cy="46" r="20"/><path d="M46 6v18M46 68v18M6 46h18M68 46h18"/><rect x="2" y="2" width="10" height="10"/><rect x="80" y="2" width="10" height="10"/><rect x="2" y="80" width="10" height="10"/><rect x="80" y="80" width="10" height="10"/></svg>
+          <svg viewBox="0 0 92 92" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="46" cy="46" r="20"/><path d="M46 6v18M46 68v18M6 46h18M68 46h18"/></svg>
         </div>
         <div class="overlay">
-          <h2>What will you <span class="serif">build?</span></h2>
-          <div class="cap">Describe it · UnityPilot flies the rest</div>
+          <h2>What will you build?</h2>
+          <div class="cap">describe it · unitypilot does the rest</div>
         </div>
-        <div class="tagcard"><b>Target acquired</b><span>scene · script · shot</span></div>
+        <div class="figtile"><img src="assets/character.png" alt="A low-poly dithered character" /><div class="ft">fig.02 · made by asking</div></div>
         <div class="corner">
           <div class="sq dark"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8V3h5M17 12v5h-5M12 3h5v5M8 17H3v-5"/></svg></div>
           <div class="sq"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="9" r="6"/><path d="M14 14l4 4"/></svg></div>
@@ -116,42 +90,42 @@
       </div>
     </section>
 
-    <!-- MODULES / WHAT IT DOES -->
+    <!-- WHAT IT DOES -->
     <section id="build">
       <div class="wrap">
         <div class="head">
-          <h2>The instrument panel.</h2>
-          <div class="head-r"><span class="lab"><span class="n">06 SYSTEMS</span> · ALL NOMINAL</span><p>Talk to Claude Code like a teammate. UnityPilot works the controls — you just read the results.</p></div>
+          <h2>What it does.</h2>
+          <div class="head-r"><span class="lab"><span class="n">06</span> capabilities</span><p>Talk to Claude Code like a teammate. UnityPilot works the editor — you just read the results.</p></div>
         </div>
 
         <div class="modules">
           <div class="mod">
-            <div class="mlab"><span class="id">INST 01 · SETUP</span><span class="ic">⌖</span></div>
+            <div class="mlab"><span class="id">01 · setup</span><span class="ic">+</span></div>
             <h3>Sets Unity up for you</h3>
             <p>Installs the right editor and creates the project. You never open Unity Hub or click around.</p>
           </div>
           <div class="mod">
-            <div class="mlab"><span class="id">INST 02 · SCENE</span><span class="ic">⌖</span></div>
+            <div class="mlab"><span class="id">02 · scene</span><span class="ic">+</span></div>
             <h3>Builds the scene</h3>
             <p>Describe a level and it creates scenes, drops in objects, and frames the camera — in a live editor you can watch.</p>
           </div>
           <div class="mod">
-            <div class="mlab"><span class="id">INST 03 · CODE</span><span class="ic">⌖</span></div>
+            <div class="mlab"><span class="id">03 · code</span><span class="ic">+</span></div>
             <h3>Writes the game code</h3>
             <p>It writes C#, compiles it, and wires it to your objects — movement, spinning, jumping, whatever you ask.</p>
           </div>
           <div class="mod">
-            <div class="mlab"><span class="id">INST 04 · ASSETS</span><span class="ic">⌖</span></div>
+            <div class="mlab"><span class="id">04 · assets</span><span class="ic">+</span></div>
             <h3>Brings your assets in</h3>
             <p>Drop in models and textures and it imports them into the project, ready to use.</p>
           </div>
           <div class="mod">
-            <div class="mlab"><span class="id">INST 05 · VISION</span><span class="ic">⌖</span></div>
+            <div class="mlab"><span class="id">05 · vision</span><span class="ic">+</span></div>
             <h3>Shows you the result</h3>
             <p>Snaps a screenshot of the game view straight into the chat — so the agent (and you) can see it.</p>
           </div>
           <div class="mod">
-            <div class="mlab"><span class="id">INST 06 · TEST</span><span class="ic">⌖</span></div>
+            <div class="mlab"><span class="id">06 · test</span><span class="ic">+</span></div>
             <h3>Runs the tests</h3>
             <p>Kicks off Unity's Test Runner and reports what passed and what failed.</p>
           </div>
@@ -163,12 +137,12 @@
     <section id="fix">
       <div class="wrap">
         <div class="head">
-          <h2>It debugs its <span class="serif acc">own</span> code.</h2>
-          <div class="head-r"><span class="lab"><span class="n">FAIL-SAFE</span> · AUTO-RECOVER</span><p>Most tools hand you code and wish you luck. UnityPilot watches it compile and fixes what breaks.</p></div>
+          <h2>It fixes its own code.</h2>
+          <div class="head-r"><span class="lab"><span class="n">auto-recover</span></span><p>Most tools hand you code and wish you luck. UnityPilot watches it compile and fixes what breaks.</p></div>
         </div>
         <div class="modules">
           <div class="mod span2">
-            <div class="mlab"><span class="id">RECOVERY LOG</span><span class="ic">↺</span></div>
+            <div class="mlab"><span class="id">recovery</span><span class="ic">↺</span></div>
             <h3>Hit a compile error? It fixes it itself.</h3>
             <p>It reads the console, finds the exact file and line, edits the script, and re-runs — until it's clean. You just see "done."</p>
             <div class="term">
@@ -182,29 +156,29 @@
       </div>
     </section>
 
-    <!-- MONITOR / SCREENSHOT -->
+    <!-- OUTPUT / SCREENSHOT -->
     <section>
       <div class="wrap">
         <div class="monitor-grid">
           <div class="monitor">
             <div class="scr"><img src="assets/demo-screenshot.png" alt="A Unity scene rendered by UnityPilot: skybox with a cube" loading="lazy" /></div>
-            <div class="mlabel"><span>GUN CAMERA · FIG.01</span><span>640 × 360 · CAMERA.MAIN</span></div>
+            <div class="mlabel"><span>output · fig.01</span><span>640 × 360 · camera.main</span></div>
           </div>
           <div>
-            <span class="lab"><span class="n">VISUAL CHANNEL</span></span>
-            <h2 style="font-size:clamp(28px,4vw,42px);margin-top:16px">It brings back<br />the <span class="serif acc">shot.</span></h2>
-            <p class="muted" style="margin-top:16px;font-size:15.5px">This is a real frame UnityPilot captured during testing — Unity's skybox with a cube it created. The image lands inline in the chat and is saved to disk. Render the game camera, a named camera, or the Scene view.</p>
+            <span class="lab"><span class="n">visual channel</span></span>
+            <h2 style="font-size:clamp(22px,2.8vw,32px);margin-top:14px">It brings back the shot.</h2>
+            <p class="muted" style="margin-top:14px;font-size:15px">This is a real frame UnityPilot captured during testing — Unity's skybox with a cube it created. The image lands inline in the chat and is saved to disk. Render the game camera, a named camera, or the Scene view.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- FLIGHT PLAN / HOW TO USE -->
-    <section id="fly">
+    <!-- GET STARTED -->
+    <section id="use">
       <div class="wrap">
         <div class="head">
-          <h2>Flight plan.</h2>
-          <div class="head-r"><span class="lab"><span class="n">PRE-FLIGHT</span> · ~1 MIN</span><p>If you already use Claude Code, you're basically cleared for takeoff.</p></div>
+          <h2>Get started.</h2>
+          <div class="head-r"><span class="lab"><span class="n">setup</span> · ~1 min</span><p>If you already use Claude Code, you're basically there.</p></div>
         </div>
         <div class="use-grid">
           <div class="steps">
@@ -228,12 +202,30 @@
               <span class="req">◇ <b>Unity Hub</b></span>
               <span class="req">◇ <b>Free Unity license</b></span>
             </div>
-            <div class="notice">⚠ macOS only for v1 — Apple Silicon &amp; Intel. Windows / Linux open for contributors.</div>
+            <div class="notice">macOS only for v1 — Apple Silicon &amp; Intel. Windows / Linux open for contributors.</div>
           </div>
         </div>
       </div>
     </section>
   </main>
+
+  <!-- CLOSING CTA (paper plane) -->
+  <section class="closing">
+    <div class="pp"></div>
+    <div class="wrap"><div class="inner">
+      <h2>Ready to build?</h2>
+      <p>Add UnityPilot to Claude Code and just ask for your first scene.</p>
+      <a class="btn btn-primary" href="#use">Get started →</a>
+    </div></div>
+  </section>
+
+  <!-- INTERACTIVE CUBE -->
+  <div class="cubefoot">
+    <span class="corner-lab l">unitypilot</span>
+    <span class="corner-lab r">drag me ↻</span>
+    <canvas id="cube" width="1160" height="300" aria-label="Draggable wireframe cube"></canvas>
+    <span class="hint">a spinning cube — the first thing people ask for</span>
+  </div>
 
   <!-- FOOTER -->
   <footer>
@@ -241,18 +233,18 @@
       <div class="foot-grid">
         <div style="max-width:330px">
           <a class="brand" href="#top">
-            <svg class="mk" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6" fill="#0a0a0a" stroke="#ff5a14"/><path d="M16 6l9 18-9-4-9 4z" fill="#ff5a14"/></svg>
+            <svg class="mk" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#0a0a0a" stroke="#ff5a14"/><rect x="13" y="13" width="6" height="6" rx="1" fill="#ff5a14"/></svg>
             UnityPilot
           </a>
-          <p>Autopilot for Unity. You fly the idea — it works the controls. macOS v1.</p>
+          <p>Build Unity games by just asking. The AI does the Unity part. macOS v1.</p>
         </div>
         <div class="foot-links">
           <div class="foot-col">
-            <h4>Systems</h4>
-            <a href="#build">What it does</a><a href="#fix">Self-healing</a><a href="#fly">Flight plan</a>
+            <h4>Explore</h4>
+            <a href="#build">What it does</a><a href="#fix">Self-healing</a><a href="#use">Get started</a>
           </div>
           <div class="foot-col">
-            <h4>Channels</h4>
+            <h4>Links</h4>
             <a href="https://github.com/anmolbhardwaj17/unitypilot" target="_blank" rel="noopener">GitHub ↗</a>
             <a href="https://www.npmjs.com/package/unitypilot" target="_blank" rel="noopener">npm ↗</a>
             <a href="https://github.com/CoderGamester/mcp-unity" target="_blank" rel="noopener">Built on mcp-unity ↗</a>
@@ -261,7 +253,7 @@
       </div>
       <div class="foot-bottom">
         <span>MIT © Anmol Bhardwaj · Bridge MIT © CoderGamester</span>
-        <span>You're the pilot.</span>
+        <span>Just ask.</span>
       </div>
     </div>
   </footer>
