@@ -1,17 +1,44 @@
 {
-  "name": "@unity-mcp/orchestrator",
-  "version": "0.0.0",
-  "private": true,
+  "name": "unitypilot",
+  "version": "0.1.0",
+  "description": "An MCP server that lets an AI agent drive the full Unity lifecycle on macOS — install the editor, create a project, launch it, build scenes, write & compile scripts, import assets, screenshot the view, read the console, and run tests — without opening the Unity Editor by hand.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
+    "unitypilot": "dist/index.js",
     "unity-mcp-orchestrator": "dist/index.js"
   },
-  "files": ["dist"],
+  "files": ["dist", "vendor/bridge", "README.md", "LICENSE"],
+  "license": "MIT",
+  "author": "Anmol Bhardwaj <anmolbhardwaj17@gmail.com>",
+  "homepage": "https://github.com/anmolbhardwaj17/unitypilot#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anmolbhardwaj17/unitypilot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/anmolbhardwaj17/unitypilot/issues"
+  },
+  "keywords": [
+    "unity",
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "ai",
+    "gamedev",
+    "editor-automation",
+    "unity3d"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "os": ["darwin"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
+    "bundle:bridge": "node scripts/bundle-bridge.mjs",
+    "prepack": "node scripts/bundle-bridge.mjs && tsc -p tsconfig.json",
     "resolver:check": "node dist/dev/resolver-check.js",
     "lifecycle:check": "node dist/dev/lifecycle-check.js"
   },

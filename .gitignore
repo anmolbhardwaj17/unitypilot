@@ -5,6 +5,12 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# bundled bridge copy (prepack copies packages/bridge here for publishing)
+packages/orchestrator/vendor/
+
+# npm pack output
+*.tgz
+
 # per-project orchestrator state (frozen paths, lifecycle state) — Phase 2+
 .unity-mcp/
 

@@ -5,6 +5,7 @@
  * `UNITY_MCP_PROJECT_ROOT` if set, else the process working directory.
  */
 
+import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -29,11 +30,20 @@ export function resolveProjectRoot(env: NodeJS.ProcessEnv = process.env): string
 }
 
 /**
- * Absolute path to `packages/bridge`, resolved relative to this module. Works both
- * from compiled `dist/config.js` and from `src/config.ts` under Vitest, since both
- * sit two directories below `packages/`.
+ * Absolute path to the forked C# bridge UPM package, which the orchestrator injects
+ * into a project's `Packages/manifest.json` as a `file:` dependency.
+ *
+ * Two layouts:
+ *  - **Published** (`npm install unitypilot`): the bridge is bundled at
+ *    `<package>/vendor/bridge` (copied in by the `prepack` step). From `dist/config.js`
+ *    that's `../vendor/bridge`.
+ *  - **Monorepo dev** (running `dist/` or `src/` in-tree): the bridge lives at
+ *    `packages/bridge`, two dirs below this module.
+ * Prefer the bundled copy when present, else fall back to the monorepo path.
  */
 export function resolveBridgePackagePath(): string {
   const here = dirname(fileURLToPath(import.meta.url)); // packages/orchestrator/{dist,src}
+  const bundled = join(here, "..", "vendor", "bridge");
+  if (existsSync(bundled)) return bundled;
   return join(here, "..", "..", "bridge");
 }

@@ -317,10 +317,13 @@ Split at the recompile/domain-reload boundary (discovered in the Phase 5 spike, 
 - Result note: `passCount`/`failCount` are the authoritative leaf tallies; `testCount` counts result-tree nodes (assembly/namespace/class + leaves), so don't assert on it.
 - **Deliverable:** ✅ agent invokes the Test Runner and gets pass/fail + failures back — verified interactive on a real Mac with a staged EditMode assembly (1 pass + 1 fail → `passCount:1, failCount:1`).
 
-### Phase 7 — Packaging + public release
-- `npm publish` the orchestrator. README with the one-line install, a **macOS-only v1** banner, the §8 scope statement, and upstream bridge attribution.
-- Single version number across the monorepo, single install line. Resolver Windows/Linux stubs clearly marked as contributor-ready.
-- **Deliverable:** a fresh Mac with Unity Hub installed can go from `npm`/`mcp.json` config to a built scene using only Claude Code prompts.
+### Phase 7 — Packaging + public release *(prepped + locally verified; awaiting `npm publish`)*
+- **npm package `unitypilot`** (was `@unity-mcp/orchestrator`, `private`). Public metadata, `0.1.0`, `engines.node >=22`, `os: ["darwin"]`, bins `unitypilot` + `unity-mcp-orchestrator`. The monorepo root was renamed `unitypilot-monorepo` to free the name.
+- **Bridge bundling (the key packaging decision):** the orchestrator npm package can't reference `packages/bridge` outside its dir, so a `prepack` step (`scripts/bundle-bridge.mjs`) copies the bridge into `vendor/bridge` (git-ignored) and `files` ships it. `resolveBridgePackagePath()` prefers the bundled `../vendor/bridge` when present, else the monorepo `../../bridge` — so injection points a `file:` ref at a real on-disk path in both dev and published installs. One `npm install` brings the bridge with it.
+- **README** rewritten (was stale at "Phase 0"): one-line install + `.mcp.json` block, macOS-only v1 banner, the tool catalog, §8 out-of-scope, upstream bridge attribution (MIT, CoderGamester/mcp-unity). `LICENSE` (MIT) added; bundled bridge keeps its own MIT `LICENSE.md`.
+- **Verified locally without publishing:** `npm pack` (248 KB; `dist` + `vendor/bridge` incl. ScreenshotTool + LICENSE) → installed the tarball into a clean temp dir → the bundled bridge resolves and exists, the server boots over stdio, `tools/list` shows all 18 tools, `status` returns `none`.
+- **Remaining (user-run):** the actual `npm publish` (needs the user's npm login) and the true fresh-Mac end-to-end. Optional: a real GitHub repo + remote (the `repository`/`homepage` URLs assume `github.com/anmolbhardwaj17/unitypilot`).
+- **Deliverable:** a fresh Mac with Unity Hub installed can go from `npm`/`mcp.json` config to a built scene using only Claude Code prompts. *(Package boots from a clean install; final publish + fresh-machine run are the user's last step.)*
 
 ---
 

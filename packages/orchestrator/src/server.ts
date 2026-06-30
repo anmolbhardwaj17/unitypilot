@@ -20,7 +20,7 @@ import { getStatus } from "./tools/status.js";
 export function createServer(): McpServer {
   const server = new McpServer({
     name: "unitypilot",
-    version: "0.0.0",
+    version: "0.1.0",
   });
 
   const ctx = createToolContext(new StateStore(resolveProjectRoot()));
