@@ -55,17 +55,25 @@ maybe a small C# `editor_status` tool in the bridge.
 
 ---
 
-## P1 — `script_write` GameObject-survives-reload reliability (the remaining tail)
-**What:** `script_write` now reliably writes + compiles + **survives the domain reload + reconnects**
-in BOTH interactive and headless (`recompiled:true`). The remaining flakiness is the **attach**:
-the target GameObject is sometimes "not found" after the reload (`GameObject 'ClaudeCube' or instance
-ID not found`) even though the scene was saved first. So the object doesn't reliably persist/resolve
-across the reload. (Worked cleanly once; failed on later runs.)
-**Why it matters:** "write a script and attach it" needs to be dependable.
-**Likely causes / fix:** after reconnect, the active scene/object may need re-opening or re-resolving
-— re-`load_scene` the saved scene (or re-`get_gameobject` by idOrName to get a fresh instanceId and
-attach by id) once the editor is `ready`; tolerate Unity's occasional double reload. **Effort:** ~1
-focused real-Unity session. **Files:** `tools/script-write.ts`.
+## P1 — `script_write` reliability: ROOT CAUSE = a backgrounded editor throttles
+**Root cause (found):** Unity **throttles/pauses an editor's update loop when it's not the
+foreground app**. The bridge dispatches messages via coroutines/`delayCall` (interactive) which
+need that loop, so when Unity is backgrounded (e.g. while you're typing in Claude Code) asset
+import + compile + message dispatch **stall** — symptoms: `.meta` never appears, `recompiled:false`,
+`update_component` timeouts. This is a Unity-level behavior; a player-loop-pump heartbeat from the
+bridge did NOT override it (the heartbeat is itself on the throttled `update`). When Unity IS the
+foreground app, `script_write` works (verified early on).
+**What's DONE (helps when the editor is processing):** capture+re-open the saved scene after the
+reload (objects can drop on reload); retry the compile-trigger up to 4×; attach with verify-retry
+via `idOrName`. All in `tools/script-write.ts`.
+**Reliable path today:** **headless** mode forces processing (the cooperative `RunHeadless` pump) —
+`script_write` is reliable there (verified). **Interactive** is reliable only when Unity is the
+foreground window.
+**Candidate real fixes (need investigation):** (a) bring the editor to the foreground for the
+duration of a compile (macOS `osascript ... activate` around `script_write`); (b) a native bridge
+hook that requests synchronous compilation off the throttled loop; (c) document "keep Unity
+focused while writing scripts." **Effort:** medium, real-Unity iteration. **Files:**
+`tools/script-write.ts`, possibly `lifecycle/launch-node.ts` + bridge.
 
 ## ✅ P3 — Headless reload resilience (CORE FIXED via cooperative pump)
 **Was:** the blocking `RunHeadless` pump deadlocked with domain reloads (a recompile needs the main

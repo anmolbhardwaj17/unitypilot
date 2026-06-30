@@ -101,6 +101,32 @@ async function reconnectAfterReload(ctx: ToolContext): Promise<boolean> {
   return false;
 }
 
+/** The active scene's asset path, or null. Captured before the reload so we can re-open it. */
+async function getActiveScenePath(ctx: ToolContext): Promise<string | null> {
+  const live = ctx.session.current?.client;
+  if (!live) return null;
+  try {
+    const info = (await ctx.bridgeMutex.run(() => live.request("get_scene_info", {}, 8_000))) as {
+      activeScene?: { path?: string };
+    };
+    return info.activeScene?.path ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Re-open a saved scene (BACKLOG P1): a domain reload can drop in-memory objects, so reloading
+ *  the scene we saved before the recompile restores them before we attach. */
+async function reopenScene(ctx: ToolContext, scenePath: string): Promise<void> {
+  const live = ctx.session.current?.client;
+  if (!live) return;
+  try {
+    await ctx.bridgeMutex.run(() => live.request("load_scene", { scenePath }, 15_000));
+  } catch {
+    // best-effort
+  }
+}
+
 export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
   server.tool(
     "script_write",
@@ -145,36 +171,44 @@ export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
         );
       }
 
-      // 2. Save the scene first so objects keep a stable identity across the domain reload.
+      // 2. Capture + save the active scene so we can restore it (with its objects) after the
+      //    reload — a domain reload can drop in-memory GameObjects.
+      const scenePath = await getActiveScenePath(ctx);
       try {
         await ctx.bridgeMutex.run(() => client.request("save_scene", {}, 15_000));
       } catch {
         // best-effort
       }
 
-      // 3. Import the new file (refresh_assets), then force compilation (recompile_scripts) —
-      //    importing alone defers compilation when the editor is driven, so the reload never
-      //    fires. Both are best-effort: the reload drops this connection mid-flight.
-      try {
-        await ctx.bridgeMutex.run(() => client.request("refresh_assets", {}, 15_000));
-      } catch {
-        // expected when the reload drops the connection
-      }
-      try {
-        await ctx.bridgeMutex.run(() => client.request("recompile_scripts", {}, 10_000));
-      } catch {
-        // expected when the reload drops the connection
-      }
-
-      // 3. Wait for the reload to drop the connection (confirms a recompile happened).
+      // 3. Trigger import + compile, then wait for the domain reload to drop the connection.
+      //    A driven (often unfocused) editor can defer compilation, so retry the trigger a few
+      //    times until the reload actually fires. Both calls are best-effort — the reload drops
+      //    the connection mid-flight.
       let dropped = false;
-      const dropDeadline = Date.now() + RELOAD_DROP_TIMEOUT_MS;
-      while (Date.now() < dropDeadline) {
-        if (!client.isOpen()) {
+      for (let attempt = 0; attempt < 4 && !dropped; attempt++) {
+        const live = ctx.session.current?.client;
+        if (!live || !live.isOpen()) {
           dropped = true;
           break;
         }
-        await sleep(500);
+        try {
+          await ctx.bridgeMutex.run(() => live.request("refresh_assets", {}, 15_000));
+        } catch {
+          dropped = !live.isOpen();
+        }
+        try {
+          await ctx.bridgeMutex.run(() => live.request("recompile_scripts", {}, 10_000));
+        } catch {
+          dropped = !live.isOpen();
+        }
+        const deadline = Date.now() + RELOAD_DROP_TIMEOUT_MS / 2;
+        while (!dropped && Date.now() < deadline) {
+          if (!live.isOpen()) {
+            dropped = true;
+            break;
+          }
+          await sleep(500);
+        }
       }
 
       // 4. Reconnect across the reload if it happened, then wait for the editor to finish
@@ -192,6 +226,11 @@ export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
           );
         }
         await waitForEditorReady(ctx);
+        // Restore the saved scene so its GameObjects are present before we attach.
+        if (scenePath) {
+          await reopenScene(ctx, scenePath);
+          await waitForEditorReady(ctx);
+        }
       }
 
       // 5. Optionally attach the (now-compiled) script as a component, verifying it stuck.
