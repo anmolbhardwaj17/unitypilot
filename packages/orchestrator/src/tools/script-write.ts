@@ -141,6 +141,16 @@ export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
       contents: z.string(),
       attachToPath: z.string().optional().describe("GameObject path to attach the script to"),
       componentName: z.string().optional().describe("Script class name (required to attach)"),
+      focusUnity: z
+        .boolean()
+        .optional()
+        .default(true)
+        .describe(
+          "Briefly bring the Unity window to the front so it actually compiles (Unity throttles a " +
+            "backgrounded editor). On by default — the reliable path. Set false to avoid focus " +
+            "stealing; if Unity is backgrounded the compile may not fire and you'll get a 'click " +
+            "Unity' message instead.",
+        ),
     },
     async (args) => {
       const state = await getEffectiveState(ctx);
@@ -196,8 +206,8 @@ export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
           break;
         }
         // Foreground Unity so its (otherwise throttled-when-backgrounded) loop actually
-        // imports + compiles. See focusEditor / BACKLOG P1.
-        await focusEditor();
+        // imports + compiles. See focusEditor / BACKLOG P1. Opt-out via focusUnity:false.
+        if (args.focusUnity) await focusEditor();
         try {
           await ctx.bridgeMutex.run(() => live.request("refresh_assets", {}, 15_000));
         } catch {
@@ -221,18 +231,16 @@ export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
       // If Unity never recompiled, it almost always means the editor window wasn't focused
       // (Unity pauses a backgrounded editor's loop). Tell the user exactly what to do.
       if (!dropped) {
+        const focusHint = args.focusUnity
+          ? "(UnityPilot tries to focus Unity automatically; if this keeps happening, focus it manually, or launch headless.)"
+          : "(You set focusUnity:false, so UnityPilot did not auto-focus Unity. Focus it manually, drop focusUnity, or launch headless.)";
         return jsonResult(
           {
             error: "editor_not_processing",
             tool: "script_write",
             written: rel,
             recompiled: false,
-            message:
-              "Wrote the script, but Unity didn't recompile it. Unity pauses a backgrounded " +
-              "editor, so this usually means the Unity Editor window isn't in focus. Click the " +
-              "Unity Editor window to bring it to the front, then run script_write again. " +
-              "(UnityPilot tries to focus Unity automatically; if this keeps happening, focus it " +
-              "manually, or launch headless.)",
+            message: `Wrote the script, but Unity didn't recompile it. Unity pauses a backgrounded editor, so this usually means the Unity Editor window isn't in focus. Click the Unity Editor window to bring it to the front, then run script_write again. ${focusHint}`,
           },
           true,
         );
@@ -242,7 +250,7 @@ export function registerScriptWrite(server: McpServer, ctx: ToolContext): void {
       //    compiling/updating so the new type is resolvable.
       if (dropped) {
         // Keep Unity foreground through the post-reload settle so it finishes processing.
-        await focusEditor();
+        if (args.focusUnity) await focusEditor();
         const ok = await reconnectAfterReload(ctx);
         if (!ok) {
           return jsonResult(

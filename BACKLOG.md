@@ -63,7 +63,9 @@ retry loop (the new MonoBehaviour type can be unresolvable for a moment right af
 If Unity *still* doesn't recompile, `script_write` returns a clear `editor_not_processing` message
 telling the user to click the Unity window. **Verified: 3/3 interactive runs passed** (write →
 compile → reload → reconnect → attach, cube gets the component). Headless was already reliable.
-Residual: focus-stealing during a compile is a UX trade-off; could add a "no-steal" option later.
+Focus-stealing UX trade-off RESOLVED: auto-focus stays ON by default (the reliable path), with a
+per-call `focusUnity:false` opt-out on `script_write`/`import_assets` for when you don't want Unity
+grabbing focus. When off and the compile doesn't fire, the `editor_not_processing` message says so.
 
 ## (history) ROOT CAUSE = a backgrounded editor throttles
 **Root cause (found):** Unity **throttles/pauses an editor's update loop when it's not the

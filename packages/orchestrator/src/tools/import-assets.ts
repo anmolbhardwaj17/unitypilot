@@ -24,7 +24,18 @@ export function registerImportAssets(server: McpServer, ctx: ToolContext): void 
     "import_assets",
     "Copy asset files into the project's Assets/<destination> and import them into Unity. " +
       "Legal only in 'launched'.",
-    { sources: z.array(z.string()).min(1), destination: z.string() },
+    {
+      sources: z.array(z.string()).min(1),
+      destination: z.string(),
+      focusUnity: z
+        .boolean()
+        .optional()
+        .default(true)
+        .describe(
+          "Briefly bring Unity to the front so it actually imports (Unity throttles a backgrounded " +
+            "editor). On by default. Set false to avoid focus stealing.",
+        ),
+    },
     async (args) => {
       const state = await getEffectiveState(ctx);
       try {
@@ -58,7 +69,7 @@ export function registerImportAssets(server: McpServer, ctx: ToolContext): void 
 
       // Foreground Unity (it throttles a backgrounded editor) so the import actually runs,
       // then do the Unity-side import via the forked refresh_assets bridge tool.
-      await focusEditor();
+      if (args.focusUnity) await focusEditor();
       const refresh = await callBridge(ctx, "import_assets", "refresh_assets", {});
       if (refresh.isError) return refresh;
 
