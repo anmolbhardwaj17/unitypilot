@@ -169,7 +169,7 @@ Resolver responsibilities:
 2. `findHub()` → locate Hub or report not-installed with an actionable message.
 3. `findEditor(version)` → locate an installed editor of that version.
 4. `installEditor(version, arch)` → drive the Hub CLI to install, picking the arch-matched build.
-5. Always honor an explicit `unityPath` override (the escape hatch for non-default installs).
+5. Always honor an explicit `unityPath` override via `verifyEditorPath(path)` (the escape hatch for non-default installs). Phase 1 verifies the binary *exists*; verifying it matches the requested version requires launching the editor and is deferred to `launch` (Phase 4).
 
 Interface sketch:
 
@@ -178,10 +178,12 @@ export interface UnityResolver {
   detectArch(): Promise<"arm64" | "x64">;
   findHub(): Promise<string | null>;
   findEditor(version: string): Promise<string | null>;
+  verifyEditorPath(path: string): Promise<boolean>; // honors an explicit unityPath override
   installEditor(version: string, arch: "arm64" | "x64"): Promise<string>;
 }
-// macOS implementation in resolver/macos.ts
-// resolver/windows.ts + resolver/linux.ts = throw NotImplemented stubs for v1
+// The single platform-selection site is resolver/index.ts (the one allowed
+// process.platform switch). macOS implementation in resolver/macos.ts.
+// resolver/stubs.ts = Windows + Linux throw NotImplemented for v1.
 ```
 
 ---
