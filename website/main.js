@@ -27,12 +27,9 @@ if (hs && hs.getContext) {
   };
   hr(); window.addEventListener("resize", hr);
 
-  const HP = [], m = 6;
-  for (let ax = 0; ax < 3; ax++) for (let s = -1; s <= 1; s += 2)
-    for (let i = 0; i < m; i++) for (let j = 0; j < m; j++) {
-      const u = -1 + (2 * i) / (m - 1), v = -1 + (2 * j) / (m - 1);
-      const p = [0, 0, 0]; p[ax] = s; p[(ax + 1) % 3] = u; p[(ax + 2) % 3] = v; HP.push(p);
-    }
+  // glowing green wireframe cube (vector-display look)
+  const HV = [[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
+  const HE = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
   let a = 0;
   const rc = (p) => {
     let [x, y, z] = p;
@@ -43,16 +40,17 @@ if (hs && hs.getContext) {
     return [x, y, z];
   };
   function hf() {
-    if (!reduce) a += 0.011;
+    if (!reduce) a += 0.009;
     c.clearRect(0, 0, HW, HH);
-    const cx = HW / 2, cy = HH * 0.40, s = Math.min(HW, HH) * 0.30, f = 3.4;
-    const pts = HP.map((p) => { const [x, y, z] = rc(p); const k = f / (f + z); return [cx + x * s * k, cy + y * s * k, z]; })
-      .sort((A, B) => B[2] - A[2]);
-    for (const p of pts) {
-      const t = (p[2] + 1.6) / 3.2;
-      c.fillStyle = `rgba(185,242,74,${0.92 - t * 0.62})`;
-      c.beginPath(); c.arc(p[0], p[1], Math.max(0.6, 1.9 - t), 0, Math.PI * 2); c.fill();
-    }
+    const cx = HW / 2, cy = HH * 0.40, s = Math.min(HW, HH) * 0.30, f = 3.6;
+    const pts = HV.map((p) => { const [x, y, z] = rc(p); const k = f / (f + z); return [cx + x * s * k, cy + y * s * k, z]; });
+    c.lineWidth = 1.8; c.lineCap = "round"; c.lineJoin = "round";
+    c.shadowColor = "rgba(185,242,74,.9)"; c.shadowBlur = 14;
+    c.strokeStyle = "rgba(196,245,90,.95)";
+    for (const [u, v] of HE) { c.beginPath(); c.moveTo(pts[u][0], pts[u][1]); c.lineTo(pts[v][0], pts[v][1]); c.stroke(); }
+    c.fillStyle = "#dcff7a"; c.shadowBlur = 16;
+    for (const p of pts) { c.beginPath(); c.arc(p[0], p[1], 2.6, 0, Math.PI * 2); c.fill(); }
+    c.shadowBlur = 0;
     requestAnimationFrame(hf);
   }
   requestAnimationFrame(hf);
@@ -115,12 +113,12 @@ if (cv && cv.getContext) {
   // Rubber-band: pulling down adds with diminishing returns (tough to scroll),
   // and we swallow the scroll so the page stays put and you feel the tension.
   const pull = (delta, k) => {
-    target = Math.min(1, target + delta * k * (1 - target * 0.86));
+    target = Math.min(1, target + delta * k * (1 - target * 0.5));
     lastInput = performance.now();
   };
   window.addEventListener("wheel", (e) => {
     if (reduce) return;
-    if (e.deltaY > 0 && atBottom()) { pull(e.deltaY, 0.0011); e.preventDefault(); }
+    if (e.deltaY > 0 && atBottom()) { pull(e.deltaY, 0.0017); e.preventDefault(); }
     else if (e.deltaY < 0) { target = Math.max(0, target - 0.09); }
   }, { passive: false });
   let ty = 0;
@@ -128,7 +126,7 @@ if (cv && cv.getContext) {
   window.addEventListener("touchmove", (e) => {
     if (reduce) return;
     const y = e.touches[0].clientY, dy = ty - y; ty = y;
-    if (dy > 0 && atBottom()) { pull(dy, 0.004); if (e.cancelable) e.preventDefault(); }
+    if (dy > 0 && atBottom()) { pull(dy, 0.0065); if (e.cancelable) e.preventDefault(); }
     else if (dy < 0) { target = Math.max(0, target + dy * 0.012); }
   }, { passive: false });
 

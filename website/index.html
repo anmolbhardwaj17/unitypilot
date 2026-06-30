@@ -41,38 +41,30 @@
           <span class="lab">open source · MIT</span>
         </div>
 
-        <div class="hero-grid">
-          <div>
-            <h1>Build Unity games<br />by just <span class="acc">asking.</span></h1>
-            <p class="lead">
-              UnityPilot plugs into Claude Code and runs Unity for you — building scenes, writing and
-              fixing the code, importing your assets, and showing you the result. No Unity experience
-              needed.
-            </p>
+        <div class="hero-center">
+          <h1>Build Unity games<br />by just <span class="acc">asking.</span></h1>
+          <p class="lead">
+            Describe the game. UnityPilot takes the controls of the editor — lays out the scene, writes
+            the C#, fixes its own compile errors, and drops the screenshot back in your chat. You never
+            open Unity.
+          </p>
 
-            <div class="install" id="install-line">
-              <span class="prompt">$</span>
-              <code>npx -y unitypilot</code>
-              <button class="copy-btn" data-copy="npx -y unitypilot">Copy</button>
-            </div>
-
-            <div class="cta-row">
-              <a class="btn btn-primary" href="#use">Get started →</a>
-              <a class="btn btn-ghost" href="#build">See what it does</a>
-            </div>
+          <div class="install" id="install-line">
+            <span class="prompt">$</span>
+            <code>npx -y unitypilot</code>
+            <button class="copy-btn" data-copy="npx -y unitypilot">Copy</button>
           </div>
 
-          <!-- hero visual: live CRT (spinning cube + build log) -->
-          <div class="crtmon">
-            <div class="strip"><span>// unitypilot-crt</span><span class="mid">live · building</span><span>res 1920</span></div>
-            <div class="screen">
-              <canvas id="heroScreen" width="640" height="480"></canvas>
-              <div class="scan"></div>
-              <div class="vig"></div>
-              <div class="log" id="heroLog"><span class="cur">_</span></div>
-            </div>
-            <div class="vlabel"><span>fig.00 · session</span><span>build · compile · ship</span></div>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="#use">Get started →</a>
+            <a class="btn btn-ghost" href="#build">See what it does</a>
           </div>
+        </div>
+
+        <!-- hero visual: real CRT, framed -->
+        <div class="crtframe">
+          <div class="cf-strip"><span>// unitypilot · session</span><span class="mid">an interface for building games</span><span>res: 1920px</span></div>
+          <div class="cf-img"><img src="assets/crt-cube.png" alt="A vintage CRT monitor showing a wireframe cube" /></div>
         </div>
       </div>
     </section>
@@ -86,22 +78,12 @@
         </div>
 
         <div class="bento">
-          <div class="tile img c2 r2">
-            <img src="assets/character.png" alt="A low-poly dithered character" loading="lazy" />
-            <div class="ov"><b>Characters &amp; objects</b><span>concept → into your scene</span></div>
-          </div>
-          <div class="tile c2"><span class="go">→</span><div class="tid">01 · setup</div><h3>Sets Unity up for you</h3><p>Installs the editor and creates the project. You never open Unity Hub.</p></div>
-          <div class="tile c2"><span class="go">→</span><div class="tid">03 · code</div><h3>Writes the game code</h3><div class="mini"><span class="hot">Spin.cs</span> <span class="ok">✓ compiled</span><br /><span class="dim">attached to</span> Cube</div></div>
-          <div class="tile img c2">
-            <img src="assets/island.png" alt="A dithered low-poly floating island" loading="lazy" />
-            <div class="ov"><b>Builds the scene</b><span>02 · scene — objects, camera, live</span></div>
-          </div>
-          <div class="tile c2"><span class="go">→</span><div class="tid">04 · assets</div><h3>Brings your assets in</h3><p>Drop in models and textures; it imports them, ready to use.</p></div>
-          <div class="tile img c4">
-            <img src="assets/demo-screenshot.png" alt="A Unity scene rendered by UnityPilot: skybox with a cube" loading="lazy" />
-            <div class="ov"><b>Shows you the result</b><span>05 · vision — a real frame, straight into the chat</span></div>
-          </div>
-          <div class="tile c2"><span class="go">→</span><div class="tid">06 · test</div><h3>Runs the tests</h3><p>Runs Unity's Test Runner; reports pass / fail.</p></div>
+          <div class="tile img c2"><img src="assets/dithered-cube.png" alt="" loading="lazy" /><div class="ov"><b>Sets Unity up for you</b><span>01 · setup</span></div></div>
+          <div class="tile img c2"><img src="assets/island.png" alt="" loading="lazy" /><div class="ov"><b>Builds the scene</b><span>02 · scene</span></div></div>
+          <div class="tile img c2"><img src="assets/hand-world.png" alt="" loading="lazy" /><div class="ov"><b>Writes the game code</b><span>03 · code</span></div></div>
+          <div class="tile img c2"><img src="assets/controller.png" alt="" loading="lazy" /><div class="ov"><b>Brings your assets in</b><span>04 · assets</span></div></div>
+          <div class="tile img c2"><img src="assets/demo-screenshot.png" alt="" loading="lazy" /><div class="ov"><b>Shows you the result</b><span>05 · vision</span></div></div>
+          <div class="tile img c2"><img src="assets/topo.png" alt="" loading="lazy" /><div class="ov"><b>Runs the tests</b><span>06 · test</span></div></div>
         </div>
       </div>
     </section>
