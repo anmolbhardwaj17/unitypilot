@@ -62,23 +62,17 @@
             </div>
           </div>
 
-          <!-- hero visual: CRT cube -->
-          <div class="vis">
-            <div class="scr"><img src="assets/crt-cube.png" alt="A wireframe cube glowing on a vintage CRT monitor" /></div>
-            <div class="vlabel"><span>fig.00 · unitypilot</span><span>build · compile · ship</span></div>
+          <!-- hero visual: live CRT (spinning cube + build log) -->
+          <div class="crtmon">
+            <div class="strip"><span>// unitypilot-crt</span><span class="mid">live · building</span><span>res 1920</span></div>
+            <div class="screen">
+              <canvas id="heroScreen" width="640" height="480"></canvas>
+              <div class="scan"></div>
+              <div class="vig"></div>
+              <div class="log" id="heroLog"><span class="cur">_</span></div>
+            </div>
+            <div class="vlabel"><span>fig.00 · session</span><span>build · compile · ship</span></div>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- DITHER BAND -->
-    <section class="band" style="padding:0">
-      <div class="ditherwrap has-img">
-        <img src="assets/hand-world.png" alt="A hand holding a small glowing world made of dithered dots" />
-        <div class="scrim"></div>
-        <div class="overlay">
-          <h2>What will you build?</h2>
-          <div class="cap">describe it — UnityPilot does the rest</div>
         </div>
       </div>
     </section>
@@ -98,7 +92,10 @@
           </div>
           <div class="tile c2"><span class="go">→</span><div class="tid">01 · setup</div><h3>Sets Unity up for you</h3><p>Installs the editor and creates the project. You never open Unity Hub.</p></div>
           <div class="tile c2"><span class="go">→</span><div class="tid">03 · code</div><h3>Writes the game code</h3><div class="mini"><span class="hot">Spin.cs</span> <span class="ok">✓ compiled</span><br /><span class="dim">attached to</span> Cube</div></div>
-          <div class="tile c2"><span class="go">→</span><div class="tid">02 · scene</div><h3>Builds the scene</h3><p>Creates scenes, drops in objects, frames the camera — live.</p></div>
+          <div class="tile img c2">
+            <img src="assets/island.png" alt="A dithered low-poly floating island" loading="lazy" />
+            <div class="ov"><b>Builds the scene</b><span>02 · scene — objects, camera, live</span></div>
+          </div>
           <div class="tile c2"><span class="go">→</span><div class="tid">04 · assets</div><h3>Brings your assets in</h3><p>Drop in models and textures; it imports them, ready to use.</p></div>
           <div class="tile img c4">
             <img src="assets/demo-screenshot.png" alt="A Unity scene rendered by UnityPilot: skybox with a cube" loading="lazy" />
@@ -116,8 +113,8 @@
           <h2>It fixes its own code.</h2>
           <div class="head-r"><span class="lab"><span class="n">auto-recover</span></span><p>Most tools hand you code and wish you luck. UnityPilot watches it compile and fixes what breaks.</p></div>
         </div>
-        <div class="modules">
-          <div class="mod span2">
+        <div class="fixgrid">
+          <div class="mod">
             <div class="mlab"><span class="id">recovery</span><span class="ic">↺</span></div>
             <h3>Hit a compile error? It fixes it itself.</h3>
             <p>It reads the console, finds the exact file and line, edits the script, and re-runs — until it's clean. You just see "done."</p>
@@ -128,6 +125,7 @@
 → <span class="ok">recompiled ✓   component attached ✓</span>
             </div>
           </div>
+          <div class="fiximg"><img src="assets/cracked.png" alt="A dithered cracked sphere reforming" loading="lazy" /></div>
         </div>
       </div>
     </section>
