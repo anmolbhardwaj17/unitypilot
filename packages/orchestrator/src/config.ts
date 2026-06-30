@@ -10,8 +10,18 @@ import { fileURLToPath } from "node:url";
 
 export const PROJECT_ROOT_ENV = "UNITY_MCP_PROJECT_ROOT";
 
-/** Name the bridge stub registers under in a project's Packages/manifest.json. */
-export const BRIDGE_PACKAGE_NAME = "com.unitymcp.bridge";
+/**
+ * UPM package name the bridge registers under in a project's Packages/manifest.json.
+ * This is the vendored fork's own package id (CoderGamester/mcp-unity, see
+ * packages/bridge/FORK.md); injection points a `file:` dependency at packages/bridge.
+ */
+export const BRIDGE_PACKAGE_NAME = "com.gamelovers.mcp-unity";
+
+/** Default port the vendored bridge's in-editor WebSocket server listens on. */
+export const BRIDGE_WS_PORT = 8090;
+
+/** WebSocket service path the bridge registers (ws://host:port/McpUnity). */
+export const BRIDGE_WS_PATH = "/McpUnity";
 
 export function resolveProjectRoot(env: NodeJS.ProcessEnv = process.env): string {
   const fromEnv = env[PROJECT_ROOT_ENV];

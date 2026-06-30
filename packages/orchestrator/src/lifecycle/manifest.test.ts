@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { bridgeFileRef, hasBridgeDependency, injectBridgeDependency } from "./manifest.js";
 
-const NAME = "com.unitymcp.bridge";
+const NAME = "com.gamelovers.mcp-unity";
 const REF = bridgeFileRef("/repo/packages/bridge");
 
 describe("bridgeFileRef", () => {

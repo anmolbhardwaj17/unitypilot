@@ -8,7 +8,7 @@ import { ProjectPathMismatchError, createProject, diagnoseFailure } from "./crea
 import type { Filesystem, ProcessRunner, RunResult } from "./deps.js";
 
 const BRIDGE_PATH = "/repo/packages/bridge";
-const BRIDGE_NAME = "com.unitymcp.bridge";
+const BRIDGE_NAME = "com.gamelovers.mcp-unity";
 
 /** In-memory filesystem keyed by absolute path. */
 class FakeFs implements Filesystem {

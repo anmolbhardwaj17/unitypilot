@@ -1,2 +1,5 @@
+# Only the orchestrator is an npm/pnpm package. packages/bridge is a Unity (UPM)
+# package consumed by Unity via a file: reference, not by pnpm — its package.json
+# declares Unity dependencies that are not on npm, so it must stay out of the workspace.
 packages:
-  - "packages/*"
+  - "packages/orchestrator"
