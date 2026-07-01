@@ -14,6 +14,39 @@ document.querySelectorAll(".copy-btn").forEach((btn) => {
   });
 });
 
+// --- hero background: animated dithered dot-field (a shimmering orb) ---
+const hd = document.getElementById("heroDither");
+if (hd && hd.getContext) {
+  const g = hd.getContext("2d");
+  let W, H;
+  const resize = () => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = hd.clientWidth; H = hd.clientHeight;
+    hd.width = W * dpr; hd.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
+  resize(); window.addEventListener("resize", resize);
+  let t = 0;
+  function draw() {
+    if (!reduce) t += 0.02;
+    g.clearRect(0, 0, W, H);
+    const step = 9, cx = W * 0.42, cy = H * 0.5, rad = Math.min(W, H) * 0.66;
+    for (let y = 4; y < H; y += step) {
+      for (let x = 4; x < W; x += step) {
+        const fall = 1 - Math.hypot(x - cx, y - cy) / rad;
+        if (fall <= 0) continue;
+        const n = 0.5 + 0.5 * Math.sin(x * 0.03 + t) * Math.cos(y * 0.028 - t * 0.8) + 0.25 * Math.sin((x + y) * 0.02 + t * 1.4);
+        const v = fall * Math.max(0, Math.min(1.2, n));
+        if (v > 0.28) {
+          g.fillStyle = `rgba(237,237,234,${Math.min(0.85, v * 0.8)})`;
+          g.beginPath(); g.arc(x, y, Math.min(2.6, v * 2.4), 0, Math.PI * 2); g.fill();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+
 // --- hero CRT screen: a small spinning green dithered cube + a typing build log ---
 const hs = document.getElementById("heroScreen");
 const hlog = document.getElementById("heroLog");
