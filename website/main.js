@@ -104,6 +104,8 @@ if (cv && cv.getContext) {
 
   const clampp = (n) => Math.max(0, Math.min(1, n));
   let a = 0, m = 0, vel = 0, over = reduce ? 1 : 0;   // over = how hard you're pulling past the end
+  let lastPush = -1;                                  // when you last pushed (for the hold-before-collapse)
+  const HOLD_MS = 1600;                               // keep the cube formed this long after you stop
   const rot = (p) => {
     let [x, y, z] = p;
     const ct = Math.cos(-0.5), st = Math.sin(-0.5);
@@ -120,6 +122,7 @@ if (cv && cv.getContext) {
       const atBottom = window.innerHeight + window.scrollY >= doc.scrollHeight - 2;
       if (atBottom && e.deltaY > 0) {
         over = Math.min(1, over + e.deltaY / 650);
+        lastPush = performance.now();     // remember when you last pushed
         e.preventDefault();               // capture the over-scroll instead of rubber-banding
       }
     }, { passive: false });
@@ -127,7 +130,9 @@ if (cv && cv.getContext) {
 
   function frame() {
     if (reduce) { m = 1; } else {
-      over *= 0.90;                        // stop pulling → springs back to the strip
+      // hold the cube for a beat after you stop pushing, then ease it back to the strip
+      const idle = lastPush < 0 ? Infinity : performance.now() - lastPush;
+      if (idle > HOLD_MS) over *= 0.955;   // gentle collapse once the hold window passes
       vel += (over - m) * 0.14; vel *= 0.72; m += vel;   // spring with a little overshoot
       a += 0.02 * clampp(m);
     }
