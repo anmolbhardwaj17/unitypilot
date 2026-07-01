@@ -82,33 +82,38 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.02em; line-height: 
 /* ---------- hero ---------- */
 .hero { padding: 90px 0 96px; border-bottom: 1px solid var(--line); }
 
-/* CRT hero: photographic monitor with the headline living inside the screen */
-.crthero { position: relative; background: #050505; padding: 0 0 56px; text-align: center; overflow: hidden; }
-.crt-stage { position: relative; width: 100%; margin: 0; aspect-ratio: 1607 / 979; }
-.crt-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; user-select: none; -webkit-user-drag: none; }
-/* text sitting on the glowing blue screen — positioned as % of the image so it stays registered at any width */
-.crt-screen-text { position: absolute; left: 36.4%; top: 19%; width: 25%; height: 32.2%; z-index: 2;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 1.2%; }
-.crt-screen-text .lab { font: 500 clamp(7px, 0.88vw, 13px) var(--mono); letter-spacing: .16em; text-transform: uppercase;
-  color: rgba(255,255,255,.82); margin-bottom: 6%; text-shadow: 0 1px 6px rgba(0,10,40,.6); }
-.crt-screen-text h1 { font-size: clamp(15px, 2.3vw, 42px); font-weight: 700; letter-spacing: -.02em; line-height: 1.07;
-  color: #fff; text-shadow: 0 1px 10px rgba(0,15,55,.55), 0 0 22px rgba(120,170,255,.35); }
-.crt-screen-text h1 .acc { color: #eaf3ff; text-shadow: 0 0 16px rgba(180,210,255,.9); }
+/* CRT hero: left-aligned text with the monitor as a small accent in the bottom-right */
+.crthero { position: relative; background: #050505; overflow: hidden; min-height: 86vh; display: flex; flex-direction: column; justify-content: center; padding: 70px 0; border-bottom: none; }
+.hero-wrap { position: relative; z-index: 2; width: 100%; }
+.hero-content { max-width: 560px; text-align: left; }
+.crthero .hero-content .lab { display: inline-block; margin-bottom: 22px; }
+.crthero .hero-content h1 { font-size: clamp(38px, 5.4vw, 72px); font-weight: 700; letter-spacing: -.03em; line-height: 1.02; }
+.crthero .hero-content h1 .acc { color: var(--accent); }
+.crthero .hero-content .lead { margin: 22px 0 0; max-width: 42ch; color: var(--ink-soft); font-size: 16px; line-height: 1.62; text-align: left; }
+.crthero .hero-content .reb-logos { text-align: left; }
 
-.crt-below { position: relative; z-index: 2; max-width: 640px; margin: 26px auto 0; }
-.crt-below .lead { margin: 0 auto; max-width: 48ch; color: var(--ink-soft); font-size: 15px; line-height: 1.6; }
-.crt-below .btn { margin-top: 26px; }
+/* the monitor, tucked into the bottom-right and blended into the dark */
+.crt-corner { position: absolute; right: 0; bottom: 0; z-index: 1; width: 46%; max-width: 760px; display: block;
+  pointer-events: none; user-select: none; -webkit-user-drag: none;
+  -webkit-mask-image: linear-gradient(to left, #000 62%, transparent), linear-gradient(to top, #000 72%, transparent);
+  -webkit-mask-composite: source-in; mask-image: linear-gradient(to left, #000 62%, transparent), linear-gradient(to top, #000 72%, transparent); mask-composite: intersect; }
+
 /* hero install command — copyable npx one-liner */
-.hcmd { display: inline-flex; align-items: center; gap: 12px; margin-top: 26px; padding: 8px 8px 8px 16px; border-radius: 12px; background: #121215; border: 1px solid var(--line-2); }
+.hcmd { display: inline-flex; align-items: center; gap: 12px; margin-top: 28px; padding: 8px 8px 8px 16px; border-radius: 12px; background: #121215; border: 1px solid var(--line-2); }
 .hcmd-p { color: var(--accent); font: 600 14px var(--mono); }
 .hcmd code { color: var(--ink); font: 500 14px var(--mono); letter-spacing: .01em; }
 .hcmd-b { margin-left: 2px; padding: 8px 15px; border-radius: 8px; background: var(--accent); color: #15200a; border: none; font: 600 12.5px var(--font); cursor: pointer; transition: background .15s; }
 .hcmd-b:hover { background: var(--accent-2); }
-@media (max-width: 460px) { .hcmd { gap: 8px; padding-left: 12px; } .hcmd code { font-size: 12.5px; } }
-.btn.glow { box-shadow: inset 0 1.5px 0 rgba(255,255,255,.6), inset 0 -2.5px 0 rgba(120,160,20,.45), 0 1px 1px rgba(0,0,0,.45), 0 8px 16px rgba(0,0,0,.45), 0 0 46px rgba(198,242,74,.4); }
-.reb-logos { margin-top: 34px; font: 400 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); }
+.reb-logos { margin-top: 32px; font: 400 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); }
 .reb-logos span { opacity: .65; margin-right: 6px; }
-@media (max-width: 620px) { .crt-below .lead { font-size: 14px; } }
+
+@media (max-width: 900px) {
+  .crthero { min-height: 0; padding: 48px 0 0; }
+  .hero-content { max-width: none; }
+  .crt-corner { position: relative; width: 100%; max-width: none; margin-top: 34px;
+    -webkit-mask-image: linear-gradient(to top, #000 78%, transparent); mask-image: linear-gradient(to top, #000 78%, transparent); }
+}
+@media (max-width: 460px) { .hcmd { gap: 8px; padding-left: 12px; } .hcmd code { font-size: 12.5px; } }
 
 /* what-it-does — expanding hover panels (mission-style) */
 .mhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 48px; margin-bottom: 24px; flex-wrap: wrap; }
