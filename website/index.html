@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
   <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=14" />
+  <link rel="stylesheet" href="styles.css?v=15" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0a' stroke='%23f4f4f0'/%3E%3Crect x='13' y='13' width='6' height='6' rx='1' fill='%23f4f4f0'/%3E%3C/svg%3E" />
 </head>
 <body>
@@ -34,16 +34,18 @@
   <main id="top">
 
     <!-- HERO -->
-    <section class="hero rebhero">
-      <canvas id="heroDither" class="hero-dither" aria-hidden="true"></canvas>
-      <div class="wrap">
-        <div class="reb-center">
-          <span class="lab"><span class="n">UNITY MCP</span> · macOS · open source</span>
-          <h1><span class="pre">Build Unity games</span>by just <span class="acc">asking.</span></h1>
-          <p class="lead">You describe the game. UnityPilot drives the editor — writes the C#, fixes its own bugs, and shows you the result. You never open Unity.</p>
-          <a class="btn btn-primary glow" href="#use">Get started →</a>
-          <div class="reb-logos"><span>works with</span> Claude Code · Unity · MCP · Node · macOS</div>
+    <section class="hero crthero">
+      <div class="crt-stage">
+        <img class="crt-img" src="assets/crt-hero.png?v=15" alt="A vintage CRT computer glowing on a red desk" />
+        <div class="crt-screen-text">
+          <span class="lab">UNITY MCP · macOS</span>
+          <h1>Build Unity games by&nbsp;just <span class="acc">asking.</span></h1>
         </div>
+      </div>
+      <div class="crt-below">
+        <p class="lead">You describe the game. UnityPilot drives the editor — writes the C#, fixes its own bugs, and shows you the result. You never open Unity.</p>
+        <a class="btn btn-primary glow" href="#use">Get started →</a>
+        <div class="reb-logos"><span>works with</span> Claude Code · Unity · MCP · Node · macOS</div>
       </div>
     </section>
 
@@ -195,6 +197,6 @@
     <canvas id="cube" width="900" height="260"></canvas>
   </div>
 
-  <script src="main.js?v=14"></script>
+  <script src="main.js?v=15"></script>
 </body>
 </html>
