@@ -32,7 +32,8 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; overscroll-behavior-y: none; }
+body { overscroll-behavior-y: none; }
 
 body {
   margin: 0;
@@ -204,24 +205,28 @@ section { padding: 84px 0; border-bottom: 1px solid var(--line); }
 @media (max-width: 860px) { .bento { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) { .bento { grid-template-columns: 1fr; } }
 
-/* consistent capability card: green gradient panel with a small product image + info block */
-.bcard { background: var(--card); border: 1px solid var(--border); border-radius: 22px; padding: 12px; box-shadow: var(--shadow-card); transition: transform .25s ease, border-color .25s ease; }
-.bcard:hover { transform: translateY(-4px); border-color: var(--border-2); }
-.bcard .media { position: relative; height: 150px; border-radius: 15px; overflow: hidden; }
+/* one cohesive card (lighter than the page bg): gradient media + folder-tab panel */
+.bcard { background: #17171b; border: 1px solid rgba(255,255,255,.09); border-radius: 24px; padding: 11px;
+  box-shadow: 0 22px 46px rgba(0,0,0,.42); transition: transform .25s ease, border-color .25s ease; }
+.bcard:hover { transform: translateY(-4px); border-color: rgba(255,255,255,.2); }
+.bcard .media { position: relative; height: 152px; border-radius: 16px; overflow: hidden; }
 .bcard .media .flare { position: absolute; inset: -28%; filter: blur(22px); transform: translateZ(0);
   background:
     radial-gradient(38% 46% at 72% 20%, rgba(220,255,150,.95), transparent 60%),
     radial-gradient(48% 58% at 28% 32%, rgba(150,230,70,.9), transparent 62%),
     radial-gradient(60% 68% at 58% 86%, rgba(16,64,18,.95), transparent 60%),
     linear-gradient(125deg, #7fd44a, #164f16 76%); }
-.bcard .media img { position: absolute; inset: 0; margin: auto; max-width: 66%; max-height: 74%; width: auto; height: auto; object-fit: contain; z-index: 1; filter: drop-shadow(0 8px 14px rgba(0,0,0,.45)); }
-.bcard .media .tag { position: absolute; top: 12px; right: 14px; z-index: 2; font: 600 10.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: rgba(10,20,6,.7); }
-.bcard .panel { position: relative; margin-top: 12px; padding: 4px 6px 6px; }
-.bcard .panel h3 { font-size: 17px; font-weight: 600; letter-spacing: -.015em; }
-.bcard .panel p { margin: 6px 0 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
-.bcard .foot { display: flex; align-items: baseline; justify-content: space-between; margin-top: 16px; padding: 0 6px; }
-.bcard .foot .num { font-size: 26px; font-weight: 800; letter-spacing: -.04em; }
-.bcard .foot .num small { font: 400 11px var(--mono); color: var(--ink-faint); margin-left: 4px; letter-spacing: .08em; text-transform: uppercase; }
+.bcard .media img { position: absolute; inset: 0; margin: auto; max-width: 58%; max-height: 70%; width: auto; height: auto; object-fit: contain; z-index: 1; filter: drop-shadow(0 8px 14px rgba(0,0,0,.5)); }
+.bcard .media .tag { position: absolute; top: 12px; right: 14px; z-index: 2; font: 600 10.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: rgba(8,20,4,.6); }
+/* folder-tab dark panel tucked up into the media */
+.bcard .panel { position: relative; z-index: 2; margin-top: -34px; background: #0b0b0d; border-radius: 16px; padding: 20px 18px 16px; }
+.bcard .panel::before { content: ""; position: absolute; top: -22px; left: 0; width: 60%; height: 24px; background: #0b0b0d; border-radius: 14px 14px 0 0; }
+.bcard .panel::after { content: ""; position: absolute; top: -22px; left: 60%; width: 22px; height: 24px; background: radial-gradient(22px 24px at 22px 0, transparent 21px, #0b0b0d 22px); }
+.bcard .panel h3 { position: relative; z-index: 2; font-size: 16px; font-weight: 600; letter-spacing: -.015em; }
+.bcard .panel p { position: relative; z-index: 2; margin: 7px 0 0; font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+.bcard .foot { display: flex; align-items: baseline; justify-content: space-between; margin-top: 20px; }
+.bcard .foot .num { font-size: 25px; font-weight: 800; letter-spacing: -.04em; color: var(--ink); }
+.bcard .foot .num small { font: 400 11px var(--mono); color: var(--ink-faint); margin-left: 5px; letter-spacing: .08em; text-transform: uppercase; }
 .bcard .foot .st { font: 400 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--accent-2); }
 .tile { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r); background: var(--bg-2); padding: 24px; display: flex; flex-direction: column; justify-content: flex-end; min-height: 200px; transition: border-color .25s, transform .25s; }
 .tile:hover { border-color: var(--line-2); transform: translateY(-3px); }

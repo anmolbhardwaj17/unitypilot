@@ -108,8 +108,10 @@ if (cv && cv.getContext) {
 
   // Engage only when the page is scrolled all the way to the bottom (the cube
   // sits below the footer). Then scrolling *fights a spring* to assemble it.
-  const atBottom = () =>
-    window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 6;
+  const atBottom = () => {
+    const max = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+    return Math.ceil(window.innerHeight + window.scrollY) >= max - 4;
+  };
 
   // Rubber-band: pulling down adds with diminishing returns (tough to scroll),
   // and we swallow the scroll so the page stays put and you feel the tension.
@@ -119,7 +121,7 @@ if (cv && cv.getContext) {
   };
   window.addEventListener("wheel", (e) => {
     if (reduce) return;
-    if (e.deltaY > 0 && atBottom()) { pull(e.deltaY, 0.0017); e.preventDefault(); }
+    if (e.deltaY > 0 && atBottom()) { pull(e.deltaY, 0.0024); e.preventDefault(); }
     else if (e.deltaY < 0) { target = Math.max(0, target - 0.09); }
   }, { passive: false });
   let ty = 0;
