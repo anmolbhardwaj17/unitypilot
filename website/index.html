@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
   <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=22" />
+  <link rel="stylesheet" href="styles.css?v=23" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0a' stroke='%23f4f4f0'/%3E%3Crect x='13' y='13' width='6' height='6' rx='1' fill='%23f4f4f0'/%3E%3C/svg%3E" />
 </head>
 <body>
@@ -44,7 +44,11 @@
       </div>
       <div class="crt-below">
         <p class="lead">You describe the game. UnityPilot drives the editor — writes the C#, fixes its own bugs, and shows you the result. You never open Unity.</p>
-        <a class="btn btn-primary glow" href="#use">Get started →</a>
+        <div class="hcmd">
+          <span class="hcmd-p">$</span>
+          <code>npx -y unitypilot</code>
+          <button class="copy-btn hcmd-b" data-copy="npx -y unitypilot" aria-label="Copy install command">Copy</button>
+        </div>
         <div class="reb-logos"><span>works with</span> Claude Code · Unity · MCP · Node · macOS</div>
       </div>
     </section>
@@ -216,6 +220,6 @@
     <canvas id="cube" width="900" height="260"></canvas>
   </div>
 
-  <script src="main.js?v=22"></script>
+  <script src="main.js?v=23"></script>
 </body>
 </html>
