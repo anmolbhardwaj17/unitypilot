@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
   <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=15" />
+  <link rel="stylesheet" href="styles.css?v=16" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0a' stroke='%23f4f4f0'/%3E%3Crect x='13' y='13' width='6' height='6' rx='1' fill='%23f4f4f0'/%3E%3C/svg%3E" />
 </head>
 <body>
@@ -36,7 +36,7 @@
     <!-- HERO -->
     <section class="hero crthero">
       <div class="crt-stage">
-        <img class="crt-img" src="assets/crt-hero.png?v=15" alt="A vintage CRT computer glowing on a red desk" />
+        <img class="crt-img" src="assets/crt-hero.png?v=16" alt="A vintage CRT computer glowing on a red desk" />
         <div class="crt-screen-text">
           <span class="lab">UNITY MCP · macOS</span>
           <h1>Build Unity games by&nbsp;just <span class="acc">asking.</span></h1>
@@ -49,40 +49,53 @@
       </div>
     </section>
 
-    <!-- WHAT IT DOES -->
+    <!-- WHAT IT DOES (featured-card layout) -->
     <section id="build">
       <div class="wrap">
-        <div class="vgrid">
-          <div class="vleft">
-            <span class="lab"><span class="n">WHAT IT DOES</span></span>
-            <h2>What it<br />does.</h2>
-            <p>You give the orders in plain English. UnityPilot does the clicking, the scripting, and the debugging — you just watch the results roll in.</p>
-            <span class="vfoot">06 capabilities · macOS · v0.1.0</span>
+        <div class="mhead">
+          <div class="mhead-l">
+            <span class="chip">what it does</span>
+            <h2>The whole Unity loop,<br /><span class="acc">handled.</span></h2>
           </div>
-          <div class="vcards">
-            <div class="vcard accent">
-              <span class="vico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 4 3-4 6 6"/><circle cx="7.5" cy="7" r="1.8"/></svg></span>
-              <div class="vbtm"><p>Objects, camera, and layout — dropped into a live editor you can watch.</p><hr /><b>Builds the scene</b></div>
+          <div class="mhead-r">
+            <p>You give the orders in plain English. UnityPilot does the clicking, the scripting, and the debugging — you just watch the results roll in.</p>
+            <a class="mpill" href="#use">Get started →</a>
+          </div>
+        </div>
+
+        <div class="mgrid">
+          <!-- 01 -->
+          <div class="mcard mcard-collapsed">
+            <span class="mnum">01</span>
+            <div class="mbtm">
+              <span class="mico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11M8 10l4 4 4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg></span>
+              <b>Sets Unity up for you</b>
             </div>
-            <div class="vcard">
-              <span class="vico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8l-4 4 4 4M15 8l4 4-4 4M13 5l-2 14"/></svg></span>
-              <div class="vbtm"><p>C# written, compiled, and wired to your objects — movement, jumps, all of it.</p><hr /><b>Writes the game code</b></div>
+          </div>
+
+          <!-- 02 — featured -->
+          <div class="mcard mcard-feat">
+            <div class="mimg"><img src="assets/scene.png?v=16" alt="A low-poly game scene UnityPilot assembled" loading="lazy" /></div>
+            <span class="mico green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 4 3-4 6 6"/><circle cx="7.5" cy="7" r="1.8"/></svg></span>
+            <h3>Builds your<br />scene, live</h3>
+            <p>Objects, camera, lighting, and layout — placed into a real Unity editor you can watch fill in, step by step. No dragging, no clicking.</p>
+          </div>
+
+          <!-- 03 -->
+          <div class="mcard mcard-collapsed">
+            <span class="mnum">03</span>
+            <div class="mbtm">
+              <span class="mico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8l-4 4 4 4M15 8l4 4-4 4M13 5l-2 14"/></svg></span>
+              <b>Writes the game code</b>
             </div>
-            <div class="vcard">
-              <span class="vico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v11M8 10l4 4 4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg></span>
-              <div class="vbtm"><p>Installs the right editor and opens your project — you never touch Unity Hub.</p><hr /><b>Sets Unity up for you</b></div>
-            </div>
-            <div class="vcard">
-              <span class="vico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></span>
-              <div class="vbtm"><p>Drop in models and textures; it imports them into the project, ready to use.</p><hr /><b>Brings your assets in</b></div>
-            </div>
-            <div class="vcard">
-              <span class="vico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span>
-              <div class="vbtm"><p>Snaps a screenshot of the game view straight back into your chat.</p><hr /><b>Shows you the result</b></div>
-            </div>
-            <div class="vcard">
-              <span class="vico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M4 12h9M4 17h6"/><path d="M16 6.5l2 2 4-4"/></svg></span>
-              <div class="vbtm"><p>Kicks off Unity's Test Runner and reports what passed and what failed.</p><hr /><b>Runs the tests</b></div>
+          </div>
+
+          <!-- 04 -->
+          <div class="mcard mcard-collapsed">
+            <span class="mnum">04</span>
+            <div class="mbtm">
+              <span class="mico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11A8 8 0 106 17.7M20 4v5h-5"/></svg></span>
+              <b>Fixes its own bugs</b>
             </div>
           </div>
         </div>
@@ -197,6 +210,6 @@
     <canvas id="cube" width="900" height="260"></canvas>
   </div>
 
-  <script src="main.js?v=15"></script>
+  <script src="main.js?v=16"></script>
 </body>
 </html>
