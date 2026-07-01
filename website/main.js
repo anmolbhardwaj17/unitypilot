@@ -14,34 +14,6 @@ document.querySelectorAll(".copy-btn").forEach((btn) => {
   });
 });
 
-// --- hero: orbiting arc of capability cards around the pitch ---
-const arc = document.getElementById("arc");
-if (arc) {
-  const names = ["setup", "scene", "code", "assets", "vision", "test", "controller", "crt-cube", "character", "cracked"];
-  names.forEach((n) => {
-    const el = document.createElement("div"); el.className = "ac";
-    const im = document.createElement("img"); im.src = "assets/" + n + ".png"; im.alt = ""; im.loading = "lazy";
-    el.appendChild(im); arc.appendChild(el);
-  });
-  const cards = Array.from(arc.children);
-  const N = cards.length;
-  let rot = -Math.PI / 2;                       // start with a card at the top
-  function layout() {
-    const R = Math.min(window.innerWidth * 0.36, window.innerHeight * 0.46, 440);
-    for (let i = 0; i < N; i++) {
-      const theta = (i / N) * Math.PI * 2 + rot;
-      const x = Math.cos(theta) * R, y = Math.sin(theta) * R;
-      const tilt = theta * 180 / Math.PI + 90;
-      cards[i].style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${tilt.toFixed(1)}deg)`;
-      cards[i].style.opacity = Math.max(0, Math.min(1, 0.9 - (y / R) * 0.85)).toFixed(2);
-      cards[i].style.zIndex = String(200 - Math.round(y));
-    }
-  }
-  function tick() { if (!reduce) rot += 0.0015; layout(); requestAnimationFrame(tick); }
-  window.addEventListener("resize", layout);
-  requestAnimationFrame(tick);
-}
-
 // --- hero CRT screen: a small spinning green dithered cube + a typing build log ---
 const hs = document.getElementById("heroScreen");
 const hlog = document.getElementById("heroLog");

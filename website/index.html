@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
   <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=2" />
+  <link rel="stylesheet" href="styles.css?v=3" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0a' stroke='%23f4f4f0'/%3E%3Crect x='13' y='13' width='6' height='6' rx='1' fill='%23f4f4f0'/%3E%3C/svg%3E" />
 </head>
 <body>
@@ -33,25 +33,27 @@
 
   <main id="top">
 
-    <!-- HERO: orbiting arc of capability cards around the pitch -->
-    <section class="hero archero">
-      <div class="arc" id="arc" aria-hidden="true"></div>
-      <div class="arc-scrim" aria-hidden="true"></div>
-      <div class="arc-center">
-        <span class="lab"><span class="n">UNITY MCP</span> · v0.1.0 · macOS</span>
-        <h1>Build Unity games<br />by just <span class="acc">asking.</span></h1>
-        <p class="lead">
-          Describe the game. UnityPilot takes the controls of the editor — writes the C#, fixes its own
-          bugs, and shows you the result. You never open Unity.
-        </p>
-        <div class="install" id="install-line">
-          <span class="prompt">$</span>
-          <code>npx -y unitypilot</code>
-          <button class="copy-btn" data-copy="npx -y unitypilot">Copy</button>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-top">
+          <span class="lab"><span class="n">UNITY MCP</span> · v0.1.0 · macOS · open source · MIT</span>
         </div>
-        <div class="cta-row">
-          <a class="btn btn-primary" href="#use">Get started →</a>
-          <a class="btn btn-ghost" href="#build">See what it does</a>
+        <div class="hero-center">
+          <h1>Build Unity games<br />by just <span class="acc">asking.</span></h1>
+          <p class="lead">
+            Describe the game. UnityPilot takes the controls of the editor — writes the C#, fixes its own
+            bugs, and shows you the result. You never open Unity.
+          </p>
+          <div class="install" id="install-line">
+            <span class="prompt">$</span>
+            <code>npx -y unitypilot</code>
+            <button class="copy-btn" data-copy="npx -y unitypilot">Copy</button>
+          </div>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="#use">Get started →</a>
+            <a class="btn btn-ghost" href="#build">See what it does</a>
+          </div>
         </div>
       </div>
     </section>
@@ -65,30 +67,13 @@
         </div>
 
         <div class="bento">
-          <div class="bcard">
-            <div class="media"><div class="flare"></div><span class="tag">unitypilot</span><img src="assets/setup.png" alt="" loading="lazy" /></div>
-            <div class="panel"><h3>Sets Unity up for you</h3><p>Installs the right editor and opens your project — you never touch Unity Hub.</p><div class="foot"><span class="num">01<small>setup</small></span><span class="st">zero clicks</span></div></div>
-          </div>
-          <div class="bcard">
-            <div class="media"><div class="flare"></div><span class="tag">unitypilot</span><img src="assets/scene.png" alt="" loading="lazy" /></div>
-            <div class="panel"><h3>Builds the scene</h3><p>Objects, camera, and layout — dropped into a live editor you can watch.</p><div class="foot"><span class="num">02<small>scene</small></span><span class="st">watch it live</span></div></div>
-          </div>
-          <div class="bcard">
-            <div class="media"><div class="flare"></div><span class="tag">unitypilot</span><img src="assets/code.png" alt="" loading="lazy" /></div>
-            <div class="panel"><h3>Writes the game code</h3><p>C# written, compiled, and wired to your objects — movement, jumps, all of it.</p><div class="foot"><span class="num">03<small>code</small></span><span class="st">compiles clean</span></div></div>
-          </div>
-          <div class="bcard">
-            <div class="media"><div class="flare"></div><span class="tag">unitypilot</span><img src="assets/assets.png" alt="" loading="lazy" /></div>
-            <div class="panel"><h3>Brings your assets in</h3><p>Drop in models and textures; it imports them into the project, ready to use.</p><div class="foot"><span class="num">04<small>assets</small></span><span class="st">ready to use</span></div></div>
-          </div>
-          <div class="bcard">
-            <div class="media"><div class="flare"></div><span class="tag">unitypilot</span><img src="assets/vision.png" alt="" loading="lazy" /></div>
-            <div class="panel"><h3>Shows you the result</h3><p>Snaps a screenshot of the game view straight back into your chat.</p><div class="foot"><span class="num">05<small>vision</small></span><span class="st">real frame</span></div></div>
-          </div>
-          <div class="bcard">
-            <div class="media"><div class="flare"></div><span class="tag">unitypilot</span><img src="assets/test.png" alt="" loading="lazy" /></div>
-            <div class="panel"><h3>Runs the tests</h3><p>Kicks off Unity's Test Runner and reports what passed and what failed.</p><div class="foot"><span class="num">06<small>test</small></span><span class="st">pass / fail</span></div></div>
-          </div>
+          <div class="fcard t2"><div class="gfx"><img src="assets/setup.png" alt="" loading="lazy" /></div><div class="txt"><h3>Sets Unity up for you</h3><p>Installs the right editor and opens your project — you never touch Unity Hub.</p></div></div>
+          <div class="fcard"><div class="gfx"><img src="assets/scene.png" alt="" loading="lazy" /></div><div class="txt"><h3>Builds the scene</h3><p>Objects, camera, and layout — dropped into a live editor.</p></div></div>
+          <a class="fcard accent t2" href="#use"><span class="ico">↗</span><div class="txt"><h3>Start building in a minute</h3><p>One line in your config, then just ask Claude Code.</p></div></a>
+          <div class="fcard"><div class="gfx"><img src="assets/code.png" alt="" loading="lazy" /></div><div class="txt"><h3>Writes the game code</h3><p>C# written, compiled, and wired to your objects.</p></div></div>
+          <div class="fcard"><div class="gfx"><img src="assets/assets.png" alt="" loading="lazy" /></div><div class="txt"><h3>Brings your assets in</h3><p>Drop in models and textures; it imports them for you.</p></div></div>
+          <div class="fcard"><div class="gfx"><img src="assets/vision.png" alt="" loading="lazy" /></div><div class="txt"><h3>Shows you the result</h3><p>A screenshot of the game view, straight into your chat.</p></div></div>
+          <div class="fcard"><div class="gfx"><img src="assets/test.png" alt="" loading="lazy" /></div><div class="txt"><h3>Runs the tests</h3><p>Unity's Test Runner — pass or fail, reported back.</p></div></div>
         </div>
       </div>
     </section>
@@ -194,6 +179,6 @@
     </div>
   </footer>
 
-  <script src="main.js?v=2"></script>
+  <script src="main.js?v=3"></script>
 </body>
 </html>
