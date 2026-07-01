@@ -79,6 +79,7 @@ if (hs && hs.getContext) {
 const cv = document.getElementById("cube");
 if (cv && cv.getContext) {
   const ctx = cv.getContext("2d");
+  const panel = document.getElementById("cubereveal");
   let W, H, DPR;
   const resize = () => {
     DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -141,11 +142,13 @@ if (cv && cv.getContext) {
 
   function frame() {
     const now = performance.now();
-    if (reduce) target = 1;
-    else if (now - lastInput > 130) target += (0 - target) * 0.05; // let go → springs apart
+    // hold the reveal while you're actively over-scrolling; ~1s after you stop, spring it back
+    if (!reduce && now - lastInput > 1000) target += (0 - target) * 0.06;
     vel += (target - disp) * 0.12; vel *= 0.76; disp += vel;        // springy (overshoots)
     if (disp < 0.0004 && Math.abs(vel) < 0.0004) { disp = 0; vel = 0; }
     const d = disp;
+    // slide the hidden panel up from the bottom by how far it's pulled
+    if (panel) panel.style.transform = `translateY(${(1 - clamp01(d)) * 100}%)`;
     ang += (0.006 + 0.012 * clamp01(d)) * (reduce ? 0 : 1);
 
     ctx.clearRect(0, 0, W, H);
