@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
   <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=8" />
+  <link rel="stylesheet" href="styles.css?v=9" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0a' stroke='%23f4f4f0'/%3E%3Crect x='13' y='13' width='6' height='6' rx='1' fill='%23f4f4f0'/%3E%3C/svg%3E" />
 </head>
 <body>
@@ -34,26 +34,15 @@
   <main id="top">
 
     <!-- HERO -->
-    <section class="hero">
+    <section class="hero rebhero">
+      <div class="hero-dither" aria-hidden="true"><img src="assets/hand-world.png?v=8" alt="" /></div>
       <div class="wrap">
-        <div class="hero-top">
-          <span class="lab"><span class="n">UNITY MCP</span> · v0.1.0 · macOS · open source · MIT</span>
-        </div>
-        <div class="hero-center">
-          <h1>Build Unity games<br />by just <span class="acc">asking.</span></h1>
-          <p class="lead">
-            Describe the game. UnityPilot takes the controls of the editor — writes the C#, fixes its own
-            bugs, and shows you the result. You never open Unity.
-          </p>
-          <div class="install" id="install-line">
-            <span class="prompt">$</span>
-            <code>npx -y unitypilot</code>
-            <button class="copy-btn" data-copy="npx -y unitypilot">Copy</button>
-          </div>
-          <div class="cta-row">
-            <a class="btn btn-primary" href="#use">Get started →</a>
-            <a class="btn btn-ghost" href="#build">See what it does</a>
-          </div>
+        <div class="reb-center">
+          <span class="lab"><span class="n">UNITY MCP</span> · macOS · open source</span>
+          <h1><span class="pre">Build Unity games</span>by just <span class="acc">asking.</span></h1>
+          <p class="lead">You describe the game. UnityPilot drives the editor — writes the C#, fixes its own bugs, and shows you the result. You never open Unity.</p>
+          <a class="btn btn-primary glow" href="#use">Get started →</a>
+          <div class="reb-logos"><span>works with</span> Claude Code · Unity · MCP · Node · macOS</div>
         </div>
       </div>
     </section>
@@ -199,6 +188,13 @@
     </div>
   </footer>
 
-  <script src="main.js?v=8"></script>
+  <!-- below the footer: a slowly spinning dithered cube -->
+  <div class="cubefoot">
+    <span class="cs-lab l">a spinning cube</span>
+    <span class="cs-lab r">the first thing people ask ↺</span>
+    <canvas id="cube" width="900" height="260"></canvas>
+  </div>
+
+  <script src="main.js?v=9"></script>
 </body>
 </html>
