@@ -86,12 +86,24 @@ if (cv && cv.getContext) {
   };
   resize(); window.addEventListener("resize", resize);
 
+  // dots sampled along the 12 cube edges — a dotted wireframe
   const CORNERS = [[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]];
   const EDGES = [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+  const PER = 6;
+  const NODES = [];
+  for (const [ia, ib] of EDGES) {
+    const A = CORNERS[ia], B = CORNERS[ib];
+    for (let i = 0; i < PER; i++) {
+      const t = i / (PER - 1);
+      NODES.push({ p: [A[0]+(B[0]-A[0])*t, A[1]+(B[1]-A[1])*t, A[2]+(B[2]-A[2])*t], corner: i === 0 || i === PER - 1 });
+    }
+  }
+  const ROWS = 4;
+  NODES.forEach((n, i) => { n.row = i % ROWS; n.col = Math.floor(i / ROWS); });
+  const COLS = Math.ceil(NODES.length / ROWS);
 
-  let a = 0;              // rotation (only once assembled)
-  let m = 0, vel = 0;     // morph 0=flat lines → 1=cube, springy
   const clampp = (n) => Math.max(0, Math.min(1, n));
+  let a = 0, m = 0, vel = 0, over = reduce ? 1 : 0;   // over = how hard you're pulling past the end
   const rot = (p) => {
     let [x, y, z] = p;
     const ct = Math.cos(-0.5), st = Math.sin(-0.5);
@@ -100,50 +112,49 @@ if (cv && cv.getContext) {
     [x, z] = [x * ca + z * sa, -x * sa + z * ca];
     return [x, y, z];
   };
-  const lerp = (A, B, e) => [A[0] + (B[0] - A[0]) * e, A[1] + (B[1] - A[1]) * e];
+
+  // pull-to-build: only fires when the page is already at the very bottom and you keep scrolling down
+  if (!reduce) {
+    window.addEventListener("wheel", (e) => {
+      const doc = document.documentElement;
+      const atBottom = window.innerHeight + window.scrollY >= doc.scrollHeight - 2;
+      if (atBottom && e.deltaY > 0) {
+        over = Math.min(1, over + e.deltaY / 650);
+        e.preventDefault();               // capture the over-scroll instead of rubber-banding
+      }
+    }, { passive: false });
+  }
 
   function frame() {
-    // scroll target: assemble as the 260px canvas rises a full canvas-height into view
-    const rectTop = cv.getBoundingClientRect().top;
-    const vh = window.innerHeight;
-    const target = reduce ? 1 : clampp((vh - rectTop - 40) / 200);
-    vel += (target - m) * 0.1; vel *= 0.78; m += vel;      // spring w/ overshoot
+    if (reduce) { m = 1; } else {
+      over *= 0.90;                        // stop pulling → springs back to the strip
+      vel += (over - m) * 0.14; vel *= 0.72; m += vel;   // spring with a little overshoot
+      a += 0.02 * clampp(m);
+    }
     const e = clampp(m);
-    if (!reduce) a += 0.005 * e;
 
     ctx.clearRect(0, 0, W, H);
-    const cx = W / 2, cy = H / 2, s = Math.min(H * 0.32, 74), f = 4.2;
-    const halfW = Math.min(W * 0.28, 360), gap = 15;
+    const cx = W / 2, cy = H / 2, s = Math.min(H * 0.30, 70), f = 4.2;
+    const stripW = Math.min(W * 0.6, 720), gapX = stripW / (COLS - 1), gapY = 15;
 
-    // project cube corners (with perspective)
-    const proj = CORNERS.map((p) => {
-      const [x, y, z] = rot(p); const k = f / (f + z);
-      return [cx + x * s * k, cy + y * s * k, z];
-    });
+    const pts = NODES.map((n) => {
+      const [x, y, z] = rot(n.p); const k = f / (f + z);
+      const fx = cx - stripW / 2 + n.col * gapX;
+      const fy = cy + (n.row - (ROWS - 1) / 2) * gapY;
+      return { x: (cx + x * s * k) * e + fx * (1 - e), y: (cy + y * s * k) * e + fy * (1 - e), z, corner: n.corner };
+    }).sort((A, B) => B.z - A.z);
 
-    // draw the 12 edges: each blends from a stacked flat line → its cube edge
-    ctx.lineCap = "round";
-    EDGES.forEach((ed, i) => {
-      const flatY = cy + (i - (EDGES.length - 1) / 2) * gap;
-      const A = lerp([cx - halfW, flatY], proj[ed[0]], e);
-      const B = lerp([cx + halfW, flatY], proj[ed[1]], e);
-      const depth = (proj[ed[0]][2] + proj[ed[1]][2]) / 2;
-      const t = (depth + 1.6) / 3.2;                         // 0 near → 1 far
-      ctx.strokeStyle = `rgba(237,237,234,${(0.85 - t * 0.5) * (0.5 + 0.5 * e)})`;
-      ctx.lineWidth = 1.4 - t * 0.6;
-      ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.stroke();
-    });
-
-    // glowing green corner dots (fade in as it assembles)
-    const order = proj.map((p, i) => i).sort((A, B) => proj[B][2] - proj[A][2]);
-    for (const i of order) {
-      const p = proj[i], t = (p[2] + 1.6) / 3.2;
-      const flatY = cy + (i - 3.5) * gap;
-      const pos = lerp([cx, flatY], [p[0], p[1]], e);
-      ctx.fillStyle = `rgba(198,242,74,${0.55 + 0.45 * e})`;
-      ctx.shadowColor = "rgba(198,242,74,.7)"; ctx.shadowBlur = 10 * (1 - t) * e;
-      ctx.beginPath(); ctx.arc(pos[0], pos[1], 3.4 - t * 1.4, 0, Math.PI * 2); ctx.fill();
-      ctx.shadowBlur = 0;
+    for (const p of pts) {
+      const t = (p.z + 1.6) / 3.2;         // 0 near → 1 far
+      if (p.corner) {
+        ctx.fillStyle = `rgba(198,242,74,${0.6 + 0.4 * e})`;
+        ctx.shadowColor = "rgba(198,242,74,.7)"; ctx.shadowBlur = 9 * (1 - t) * e;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 3 - t * 1.1, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 0;
+      } else {
+        ctx.fillStyle = `rgba(237,237,234,${0.42 + (0.45 - t * 0.5) * e})`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(0.8, 1.9 - t), 0, Math.PI * 2); ctx.fill();
+      }
     }
     requestAnimationFrame(frame);
   }
