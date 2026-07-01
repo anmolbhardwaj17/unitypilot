@@ -87,7 +87,7 @@ h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.02em; line-height: 
 .hero-wrap { position: relative; z-index: 2; width: 100%; }
 .hero-content { max-width: 560px; text-align: left; }
 .crthero .hero-content .lab { display: inline-block; margin-bottom: 22px; }
-.crthero .hero-content h1 { font-size: clamp(38px, 5.4vw, 72px); font-weight: 700; letter-spacing: -.03em; line-height: 1.02; }
+.crthero .hero-content h1 { font-size: clamp(32px, 3.8vw, 52px); font-weight: 700; letter-spacing: -.03em; line-height: 1.05; }
 .crthero .hero-content h1 .acc { color: var(--accent); }
 .crthero .hero-content .lead { margin: 22px 0 0; max-width: 42ch; color: var(--ink-soft); font-size: 16px; line-height: 1.62; text-align: left; }
 .crthero .hero-content .reb-logos { text-align: left; }
