@@ -1,7 +1,11 @@
 # UnityPilot
 
-> An MCP server that lets an AI agent drive the full Unity lifecycle on macOS — without
+[![npm version](https://img.shields.io/npm/v/unitypilot?color=cb3837&logo=npm&label=unitypilot)](https://www.npmjs.com/package/unitypilot)
+
+> An MCP server that lets an AI agent drive the full Unity lifecycle on macOS, without
 > the developer ever opening the Unity Editor by hand.
+
+**📦 npm package:** [npmjs.com/package/unitypilot](https://www.npmjs.com/package/unitypilot) · install with `npx -y unitypilot`
 
 One `npm install`, and an AI agent can install Unity, scaffold a project, launch it (visible
 or headless), import assets, build scenes, write & compile scripts, screenshot the view,
